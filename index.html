@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Моя Гача Апка</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER (optional, or use Telegram's built-in header) -->
+
+        <!-- MAIN CONTENT SECTIONS -->
+        <div id="home-screen" class="screen active">
+            <h2>Мои Питомцы</h2>
+            <div id="pet-grid" class="pet-grid">
+                <!-- Pets will be loaded here -->
+            </div>
+            <p id="no-pets-message" class="info-message hidden">У вас пока нет питомцев. Крутите гачу!</p>
+        </div>
+
+        <div id="gacha-screen" class="screen hidden">
+            <h2>🎰 Крутить Гачу</h2>
+            <p>Ваша клубника: <span id="gacha-strawberry-balance">0</span></p>
+            <div class="gacha-area">
+                <img id="roulette-gif" src="assets/roulette.gif" alt="Рулетка" class="roulette-gif">
+                <div id="gacha-result" class="gacha-result">
+                    <!-- Result pet will appear here -->
+                </div>
+            </div>
+            <div class="gacha-buttons">
+                <button id="spin-1-btn" class="btn">Крутить 1 раз (100 🍓)</button>
+                <button id="spin-10-btn" class="btn">Крутить 10 раз (1000 🍓)</button>
+            </div>
+            <div id="gacha-guarantees" class="gacha-guarantees">
+                <h3>Следующие гаранты:</h3>
+                <ul id="guarantee-list">
+                    <!-- Guarantees will be loaded here -->
+                </ul>
+            </div>
+            <p id="gacha-message" class="info-message hidden"></p>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <h2>🍓 Клубничная Ферма</h2>
+            <p>Ваша клубника: <span id="game-strawberry-balance">0</span></p>
+            <div class="strawberry-clicker">
+                <img id="strawberry-img" src="assets/strawberry.png" alt="Клубника" class="strawberry-img">
+                <div id="click-feedback-container"></div>
+            </div>
+            <div class="clicker-info">
+                <p>Уровень кликера: <span id="clicker-level">1</span></p>
+                <p>Клубники за клик: <span id="per-click-amount">1</span></p>
+            </div>
+            <button id="upgrade-clicker-btn" class="btn upgrade-btn">Улучшить кликер (<span id="upgrade-cost">--</span> 🍓)</button>
+            <p id="upgrade-message" class="info-message hidden"></p>
+        </div>
+
+        <div id="profile-screen" class="screen hidden">
+            <h2>👤 Профиль</h2>
+            <div class="profile-info">
+                <img id="profile-avatar" src="" alt="Аватар" class="profile-avatar hidden">
+                <p><strong>Ник:</strong> <span id="profile-username"></span></p>
+                <p><strong>Всего питомцев:</strong> <span id="profile-total-pets">0</span></p>
+                <p><strong>Клубники потрачено:</strong> <span id="profile-strawberries-spent">0</span></p>
+                <p><strong>Кликов сделано:</strong> <span id="profile-total-clicks">0</span></p>
+            </div>
+            <div class="promocode-section">
+                <h3>Ввести промокод</h3>
+                <input type="text" id="promocode-input" placeholder="Введите промокод">
+                <button id="apply-promocode-btn" class="btn">Применить</button>
+                <p id="promocode-message" class="info-message hidden"></p>
+            </div>
+        </div>
+
+        <!-- NAVIGATION BUTTONS -->
+        <div class="navigation-buttons">
+            <button class="nav-btn active" data-target="home-screen">🏠 Дом</button>
+            <button class="nav-btn" data-target="gacha-screen">🎰 Гача</button>
+            <button class="nav-btn" data-target="game-screen">🍓 Игра</button>
+            <button class="nav-btn" data-target="profile-screen">👤 Профиль</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
