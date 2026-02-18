@@ -18,7 +18,7 @@ from db import (
 
 # --- Настройки бота ---
 TOKEN = "8226800067:AAH3KAaK4-VIcXh8GijTRd5sCRKQQ2MJ510" # ЗАМЕНИТЕ НА ВАШ ТОКЕН
-WEB_APP_URL = "http://t.me/gachapyatochkibot/Gacha" # ЗАМЕНИТЕ НА URL ВАШЕГО СЕРВЕРА
+WEB_APP_URL = "http://localhost:8080/webapp/index.html" # ЗАМЕНИТЕ НА URL ВАШЕГО СЕРВЕРА
                                                                 # (например, для локального теста: http://localhost:8080/webapp/index.html)
 ADMIN_USER_ID = 1562471251 # ЗАМЕНИТЕ НА ВАШ ID (для админ-команд)
 
