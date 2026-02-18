@@ -251,7 +251,7 @@ h2 {
 }
 
 .strawberry-img:active {
-    transform: scale(0.95);
+    transform: scale(0.2);
 }
 
 .clicker-info {
