@@ -263,7 +263,8 @@ async def health_check(request):
     return web.Response(text="I'm alive")
 
 if __name__ == "__main__":
-    import asyncio
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout) # Убедимся, что логи идут в stdout
     asyncio.run(main())
+
 
 
