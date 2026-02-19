@@ -20,7 +20,7 @@ from db import (
 
 # --- Настройки бота ---
 TOKEN = "8226800067:AAH3KAaK4-VIcXh8GijTRd5sCRKQQ2MJ510" # ЗАМЕНИТЕ НА ВАШ ТОКЕН
-WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # ЗАМЕНИТЕ НА URL ВАШЕГО СЕРВЕРА
+WEB_APP_URL = "https://gacha2-5ng0.onrender.com/webapp/index.html" # ЗАМЕНИТЕ НА URL ВАШЕГО СЕРВЕРА
                                                                 # (например, для локального теста: http://localhost:8080/webapp/index.html)
 ADMIN_USER_ID = 1562471251 # ЗАМЕНИТЕ НА ВАШ ID (для админ-команд)
 
@@ -265,4 +265,5 @@ async def health_check(request):
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
+
 
