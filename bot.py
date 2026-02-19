@@ -240,17 +240,17 @@ async def admin_create_promo_handler(message: types.Message):
 # --- Веб-сервер для Mini App ---
 async def start_web_server():
     async def start_web_server():
-    app = web.Application()
-    app.router.add_get('/health', health_check) # Добавь эту строку
-    app.router.add_static('/webapp/', path=os.path.join(os.getcwd(), 'webapp'), name='webapp')
+        app = web.Application()
+        app.router.add_get('/health', health_check) # Добавь эту строку
+        app.router.add_static('/webapp/', path=os.path.join(os.getcwd(), 'webapp'), name='webapp')
     
-    runner = web.AppRunner(app)
-    await runner.setup()
-    # Render сам назначит порт через переменную окружения PORT
-    port = int(os.environ.get("PORT", 8080)) 
-    site = web.TCPSite(runner, '0.0.0.0', port) 
-    await site.start()
-    logging.info("Web server started on http://localhost:8080")
+        runner = web.AppRunner(app)
+        await runner.setup()
+        # Render сам назначит порт через переменную окружения PORT
+        port = int(os.environ.get("PORT", 8080)) 
+        site = web.TCPSite(runner, '0.0.0.0', port) 
+        await site.start()
+        logging.info("Web server started on http://localhost:8080")
 
 async def main():
     init_db() # Инициализация базы данных
@@ -263,5 +263,6 @@ async def health_check(request):
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
+
 
 
