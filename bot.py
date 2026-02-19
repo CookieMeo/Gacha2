@@ -1,5 +1,6 @@
 import logging
 from aiogram import Bot, Dispatcher, types
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -18,7 +19,7 @@ from db import (
 
 # --- Настройки бота ---
 TOKEN = "8226800067:AAH3KAaK4-VIcXh8GijTRd5sCRKQQ2MJ510" # ЗАМЕНИТЕ НА ВАШ ТОКЕН
-WEB_APP_URL = "http://localhost:8080/webapp/index.html" # ЗАМЕНИТЕ НА URL ВАШЕГО СЕРВЕРА
+WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # ЗАМЕНИТЕ НА URL ВАШЕГО СЕРВЕРА
                                                                 # (например, для локального теста: http://localhost:8080/webapp/index.html)
 ADMIN_USER_ID = 1562471251 # ЗАМЕНИТЕ НА ВАШ ID (для админ-команд)
 
@@ -26,7 +27,7 @@ ADMIN_USER_ID = 1562471251 # ЗАМЕНИТЕ НА ВАШ ID (для админ-
 logging.basicConfig(level=logging.INFO)
 
 # Инициализация бота и диспетчера
-bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 # --- Вспомогательные функции для Mini App ---
@@ -263,6 +264,3 @@ async def health_check(request):
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
-
-
-
