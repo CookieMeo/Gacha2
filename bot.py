@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import os
+import sys
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -265,6 +266,7 @@ async def health_check(request):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout) # Убедимся, что логи идут в stdout
     asyncio.run(main())
+
 
 
 
