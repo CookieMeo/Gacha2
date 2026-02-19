@@ -1,4 +1,6 @@
 import logging
+import asyncio
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -7,7 +9,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import WebAppInfo
 from aiohttp import web # Для обслуживания статических файлов Mini App
 import json
-import os
 from datetime import datetime
 
 # Импортируем функции для работы с БД
@@ -264,3 +265,4 @@ async def health_check(request):
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
+
