@@ -20,7 +20,7 @@ except ImportError:
 
 # --- КОНФИГУРАЦИЯ ---
 TOKEN = "8120653173:AAGIVbVAbbENlSvDt7ZOlsuSbtNRMDt1H-A" 
-WEB_APP_URL = "https://gacha2.onrender.com" # Убедись, что это адрес из настроек Render
+WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # Убедись, что это адрес из настроек Render
 
 # Настройка путей
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -99,3 +99,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
