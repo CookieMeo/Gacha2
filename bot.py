@@ -24,7 +24,7 @@ TOKEN = "8226800067:AAH3KAaK4-VIcXh8GijTRd5sCRKQQ2MJ510"
 # Вставь свой ID (узнай в @userinfobot)
 ADMIN_USER_ID = 1562471251  
 # Твой URL на Render (БЕЗ слеша в конце)
-WEB_APP_URL = "https://gacha2.onrender.com" 
+WEB_APP_URL = "https://gacha2.onrender.com"" 
 
 # Определение путей (чтобы Render точно нашел папку)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -73,24 +73,17 @@ async def health_check(request):
 async def start_web_server():
     app = web.Application()
     
-    # Главная страница для Render
-    app.router.add_get('/', handle_index)
-    app.router.add_get('/health', health_check)
+    # Это сделает всё содержимое папки webapp доступным по главному адресу
+    # index.html будет открываться автоматически
+    app.router.add_static('/', path=WEBAPP_PATH, name='webapp', show_index=True)
     
-    # Раздача статики (стили, скрипты, картинки)
-    if os.path.exists(WEBAPP_PATH):
-        app.router.add_static('/webapp/', path=WEBAPP_PATH, name='webapp')
-        logging.info(f"✅ Папка webapp найдена по пути: {WEBAPP_PATH}")
-    else:
-        logging.error(f"❌ ПАПКА webapp НЕ НАЙДЕНА! Путь: {WEBAPP_PATH}")
-
     runner = web.AppRunner(app)
     await runner.setup()
     
-    port = int(os.environ.get("PORT", 8080))
-    site = web.TCPSite(runner, '0.0.0.0', port)
+    port = int(os.environ.get("PORT", 10000)) # Render обычно дает порт 10000
+    site = web.TCPSite(runner, '0.0.0.0', port) 
     await site.start()
-    logging.info(f"🚀 Веб-сервер запущен на порту {port}")
+    logging.info(f"✅ Веб-сервер запущен на порту {port}")
 
 # --- ЗАПУСК ---
 
@@ -111,3 +104,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
