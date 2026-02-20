@@ -240,43 +240,45 @@ async def admin_create_promo_handler(message: types.Message):
         await message.reply(f"Ошибка: Промокод '{code}' уже существует или произошла ошибка БД.")
 
 
-# Функция для показа главной страницы
 async def index_handler(request):
-    return web.FileResponse('./webapp/index.html')
+    try:
+        return web.FileResponse('./webapp/index.html')
+    except Exception:
+        return web.Response(text="index.html not found", status=404)
+
+async def health_check(request):
+    return web.Response(text="I'm alive")
 
 # Веб-сервер для Mini App
 async def start_web_server():
     app = web.Application()
     
-    # Добавляем обработчик для главной страницы (чтобы Render видел, что сайт работает)
+    # ЭТО САМОЕ ВАЖНОЕ: теперь главная страница будет работать
     app.router.add_get('/', index_handler)
-    
-    # Добавляем health check
+    # Health check для Render
     app.router.add_get('/health', health_check)
-    
-    # Раздача статики (картинки, стили, скрипты)
-    # Теперь статика будет доступна просто по адресу /style.css и т.д.
-    app.router.add_static('/', path=os.path.join(os.getcwd(), 'webapp'), name='webapp')
+    # Раздача остальных файлов (стили, картинки)
+    app.router.add_static('/webapp/', path=os.path.join(os.getcwd(), 'webapp'), name='webapp')
     
     runner = web.AppRunner(app)
     await runner.setup()
-    
     port = int(os.environ.get("PORT", 8080)) 
     site = web.TCPSite(runner, '0.0.0.0', port) 
     await site.start()
-    logging.info(f"Web server started on port {port}")
-
-async def main():
-    init_db() # Инициализация базы данных
-    await start_web_server() # Запуск веб-сервера
-    await dp.start_polling(bot) # Запуск бота
-
-async def health_check(request):
-    return web.Response(text="I'm alive")
+    logging.info(f"✅ Web server started on port {port}")
+    
+async def main() -> None:
+    await init_db()
+    # Сначала запускаем веб-сервер, чтобы Render сразу увидел порт
+    await start_web_server()
+    # Затем запускаем бота
+    logging.info("🚀 Starting bot polling...")
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout) # Убедимся, что логи идут в stdout
     asyncio.run(main())
+
 
 
 
