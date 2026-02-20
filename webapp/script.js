@@ -132,7 +132,21 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const rarityKey in RARITIES) {
         userData.pityCounters[rarityKey] = 0;
     }
+    function setupClick(id, callback) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('click', callback);
+        } else {
+            console.warn(`Кнопка с id="${id}" не найдена в HTML!`);
+        }
+    }
 
+    // Настраиваем навигацию
+    setupClick('home-btn', () => showPage('home'));
+    setupClick('gacha-btn', () => showPage('gacha'));
+    setupClick('game-btn', () => showPage('game'));
+    setupClick('profile-btn', () => showPage('profile'));
+    
     // --- Functions for Data Management ---
     function saveUserData() {
         localStorage.setItem(`gachaAppUser_${userData.userId}`, JSON.stringify(userData));
@@ -505,3 +519,4 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserData();
     showSection('home-section'); // Start on the home section
 });
+
