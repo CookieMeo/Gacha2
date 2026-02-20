@@ -132,20 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const rarityKey in RARITIES) {
         userData.pityCounters[rarityKey] = 0;
     }
-    function setupClick(id, callback) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('click', callback);
-        } else {
-            console.warn(`Кнопка с id="${id}" не найдена в HTML!`);
-        }
-    }
-
-    // Настраиваем навигацию
-    setupClick('home-btn', () => showPage('home'));
-    setupClick('gacha-btn', () => showPage('gacha'));
-    setupClick('game-btn', () => showPage('game'));
-    setupClick('profile-btn', () => showPage('profile'));
     
     // --- Functions for Data Management ---
     function saveUserData() {
@@ -275,10 +261,22 @@ document.addEventListener('DOMContentLoaded', () => {
         Telegram.WebApp.MainButton.hide(); // Hide main button by default for sections
     }
 
-    navHomeBtn.addEventListener('click', () => showSection('home-section'));
-    navGachaBtn.addEventListener('click', () => showSection('gacha-section'));
-    navGameBtn.addEventListener('click', () => showSection('game-section'));
-    navProfileBtn.addEventListener('click', () => showSection('profile-section'));
+    // Функция для безопасного добавления клика
+    function setupClick(id, callback) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('click', callback);
+        } else {
+            console.warn(`Кнопка с id="${id}" не найдена в HTML!`);
+        }
+    }
+
+    // Настраиваем навигацию
+    setupClick('home-btn', () => showPage('home'));
+    setupClick('gacha-btn', () => showPage('gacha'));
+    setupClick('game-btn', () => showPage('game'));
+    setupClick('profile-btn', () => showPage('profile'));
+
 
     // --- Game Logic: Clicker ---
     strawberryImage.addEventListener('click', () => {
@@ -519,4 +517,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserData();
     showSection('home-section'); // Start on the home section
 });
+
 
