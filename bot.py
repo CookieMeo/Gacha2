@@ -24,7 +24,7 @@ TOKEN = "8226800067:AAH3KAaK4-VIcXh8GijTRd5sCRKQQ2MJ510"
 # Вставь свой ID (узнай в @userinfobot)
 ADMIN_USER_ID = 1562471251  
 # Твой URL на Render (БЕЗ слеша в конце)
-WEB_APP_URL = "https://gacha2.onrender.com"" 
+WEB_APP_URL = "https://gacha2.onrender.com"
 
 # Определение путей (чтобы Render точно нашел папку)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -104,4 +104,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
