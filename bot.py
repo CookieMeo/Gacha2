@@ -20,7 +20,7 @@ except ImportError:
 
 # --- КОНФИГУРАЦИЯ ---
 # Вставь сюда свой токен от BotFather
-TOKEN = "8226800067:AAH3KAaK4-VIcXh8GijTRd5sCRKQQ2MJ510" 
+TOKEN = "8120653173:AAGIVbVAbbENlSvDt7ZOlsuSbtNRMDt1H-A" 
 # Вставь свой ID (узнай в @userinfobot)
 ADMIN_USER_ID = 1562471251  
 # Твой URL на Render (БЕЗ слеша в конце)
@@ -104,5 +104,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
