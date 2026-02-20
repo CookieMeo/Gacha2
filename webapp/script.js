@@ -272,10 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Настраиваем навигацию
-    setupClick('home-btn', () => showPage('home'));
-    setupClick('gacha-btn', () => showPage('gacha'));
-    setupClick('game-btn', () => showPage('game'));
-    setupClick('profile-btn', () => showPage('profile'));
+    navHomeBtn.addEventListener('click', () => showSection('home-section'));
+    navGachaBtn.addEventListener('click', () => showSection('gacha-section'));
+    navGameBtn.addEventListener('click', () => showSection('game-section'));
+    navProfileBtn.addEventListener('click', () => showSection('profile-section'));
 
 
     // --- Game Logic: Clicker ---
@@ -517,5 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserData();
     showSection('home-section'); // Start on the home section
 });
+
 
 
