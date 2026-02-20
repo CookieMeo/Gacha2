@@ -24,7 +24,7 @@ WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # Убедись, что это
 
 # Настройка путей
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WEBAPP_PATH = os.path.join(BASE_DIR, "webapp")
+WEBAPP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "webapp")
 
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
@@ -64,14 +64,13 @@ async def health_check(request):
 async def start_web_server():
     app = web.Application()
     
-    # Сначала вешаем обработчик на корень /
-    app.router.add_get('/', handle_index)
+    # 1. Сначала добавляем health check
     app.router.add_get('/health', health_check)
     
-    # Потом раздаем статику (картинки, стили)
-    if os.path.exists(WEBAPP_PATH):
-        app.router.add_static('/webapp/', path=WEBAPP_PATH, name='webapp')
-        app.router.add_static('/', path=WEBAPP_PATH, name='root_static') # На всякий случай
+    # 2. Главная магия: делаем так, чтобы ВСЕ файлы из папки webapp 
+    # были доступны по прямому адресу (без /webapp/)
+    # Это исправит 404 для картинок
+    app.router.add_static('/', path=WEBAPP_PATH, name='static')
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -79,7 +78,7 @@ async def start_web_server():
     port = int(os.environ.get("PORT", 10000))
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-    logging.info(f"✅ Сервер запущен на порту {port}")
+    logging.info(f"✅ Сервер раздает файлы из {WEBAPP_PATH} на порту {port}")
 
 # --- ЗАПУСК ---
 
@@ -99,4 +98,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
