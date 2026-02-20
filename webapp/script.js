@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     safeAddEventListener('spin-10-btn', 'click', spinGacha);
     
     // Кнопка промокода (если есть)
-    safeAddEventListener('apply-promo', 'click', async () => {
+    safeAddEventListener('apply-promocode-btn', 'click', async () => {
         const code = document.getElementById('promo-input')?.value;
         if (!code) return;
         // Тут твоя логика промокода...
@@ -125,5 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Первое обновление данных
     updateUI();
 });
+
 
 
