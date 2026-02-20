@@ -70,7 +70,7 @@ async def start_web_server():
     # 2. Главная магия: делаем так, чтобы ВСЕ файлы из папки webapp 
     # были доступны по прямому адресу (без /webapp/)
     # Это исправит 404 для картинок
-    app.router.add_static('/', path=WEBAPP_PATH, name='static')
+    app.router.add_static('/', path=WEBAPP_PATH, name='static', follow_symlinks=True, show_index=True)
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -98,5 +98,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
