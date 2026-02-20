@@ -105,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Игровые кнопки
     safeAddEventListener('collect-btn', 'click', collectStrawberry);
-    safeAddEventListener('spin-btn', 'click', spinGacha);
+    safeAddEventListener('spin-1-btn', 'click', spinGacha);
+    safeAddEventListener('spin-10-btn', 'click', spinGacha);
     
     // Кнопка промокода (если есть)
     safeAddEventListener('apply-promo', 'click', async () => {
@@ -124,4 +125,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Первое обновление данных
     updateUI();
 });
+
 
