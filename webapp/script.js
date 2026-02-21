@@ -20,7 +20,7 @@ async function updateUI() {
     const u = await api('/get_user', {user_id: uid});
     
     // Обновление валюты
-    document.querySelectorAll('.straw-count').forEach(el => el.innerText = u.strawberry);
+    document.querySelectorAll('.strawberry-count').forEach(el => el.innerText = u.strawberry);
     document.querySelectorAll('.spins-count').forEach(el => el.innerText = u.spins);
     
     // Гаранты
@@ -82,5 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
