@@ -3,12 +3,20 @@ const uid = tg.initDataUnsafe.user?.id || 12345;
 
 // --- ПОМОЩНИКИ ---
 async function api(path, body) {
-    const r = await fetch('/api' + path, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body)
-    });
-    return r.json();
+    try {
+        const r = await fetch('/api' + path, {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        return await r.json();
+    } catch (e) {
+        console.error("Ошибка API:", e);
+        return { success: false };
+    }
 }
+
+
 
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -17,41 +25,51 @@ function showPage(pageId) {
 
 // --- ОСНОВНАЯ ЛОГИКА ---
 async function updateUI() {
-    const u = await api('/get_user', {user_id: uid});
-    
-    // Обновление валюты
-    document.querySelectorAll('.strawberry-count').forEach(el => el.innerText = u.strawberry);
-    document.querySelectorAll('.spins-count').forEach(el => el.innerText = u.spins);
-    
-    // Гаранты
-    if (document.getElementById('p-red')) document.getElementById('p-red').innerText = u.pity_red;
-    if (document.getElementById('p-ora')) document.getElementById('p-ora').innerText = u.pity_orange;
-    if (document.getElementById('p-yel')) document.getElementById('p-yel').innerText = u.pity_yellow;
-    if (document.getElementById('p-gre')) document.getElementById('p-gre').innerText = u.pity_green;
-    if (document.getElementById('p-lbu')) document.getElementById('p-lbu').innerText = u.pity_lightblue;
-    if (document.getElementById('p-blu')) document.getElementById('p-blu').innerText = u.pity_blue;
-    
-    // Уровень клика
-    if (document.getElementById('click-lvl')) document.getElementById('click-lvl').innerText = u.click_level;
-    const costs = {2:10, 3:40, 4:90, 5:160, 6:250, 7:360, 8:490, 9:640, 10:810, 11:4000};
-    const upBtn = document.getElementById('upgrade-btn');
-    if (upBtn) {
-        if (u.click_level >= 11) upBtn.style.display = 'none';
-        else upBtn.innerText = `Улучшить (${costs[u.click_level+1]} 🍓)`;
+    console.log("Обновление интерфейса...");
+    const u = await api('/get_user', { user_id: uid });
+    if (!u) {
+        console.error("Пользователь не получен!");
+        return;
     }
+
+    // Безопасное обновление текста по ID
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+    };
+
+    // Обновляем клубнику и уровень
+    setText('straw-count', u.strawberry);
+    setText('lvl-txt', "Уровень " + u.click_level);
+    
+    // Обновляем счетчики в гаче (если они есть)
+    setText('p-red', u.pity_red);
+    setText('p-ora', u.pity_orange);
+    setText('p-yel', u.pity_yellow);
+    setText('p-gre', u.pity_green);
+    setText('p-lbu', u.pity_lightblue);
+    setText('p-blu', u.pity_blue);
+    
+    // Кнопка улучшения
+    const costs = {2:10, 3:40, 4:90, 5:160, 6:250, 7:360, 8:490, 9:640, 10:810, 11:4000};
+    const upBtn = document.getElementById('up-btn');
+    if (upBtn) {
+        if (u.click_level >= 11) {
+            upBtn.style.display = 'none';
+        } else {
+            const nextCost = costs[u.click_level + 1] || 0;
+            upBtn.innerText = `Улучшить (${nextCost} 🍓)`;
+        }
+    }
+    console.log("Данные обновлены: ", u.strawberry, "🍓");
 }
 
 async function collectStrawberry() {
-    await api('/click', {user_id: uid});
-}
-
-async function spin(count) {
-    const res = await api('/spin', {user_id: uid, count: count});
+    console.log("Клик!");
+    const res = await api('/click', { user_id: uid });
     if (res.success) {
-        const names = res.pets.map(p => `${p.name} (${p.rarity})`).join(', ');
-        document.getElementById('gacha-res').innerText = "Выпало: " + names;
-        updateUI();
-    } else alert(res.error);
+        updateUI(); // Принудительно обновляем экран
+    }
 }
 
 async function buySpins(count) {
@@ -67,6 +85,22 @@ async function upgrade() {
 // --- СТАРТ ---
 document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
+
+    const strawBtn = document.getElementById('strawberry-btn');
+    if (strawBtn) {
+        strawBtn.onclick = collectStrawberry;
+        console.log("Кнопка клубники готова");
+    }
+
+    // Привязка к кнопке улучшения
+    const upBtn = document.getElementById('up-btn');
+    if (upBtn) {
+        upBtn.onclick = async () => {
+            const res = await api('/upgrade', { user_id: uid });
+            if (res.success) updateUI();
+            else alert("Недостаточно клубники!");
+        };
+    }
     
     // Навигация
     document.getElementById('home-btn').onclick = () => showPage('home');
@@ -82,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
