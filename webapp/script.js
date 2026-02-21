@@ -82,6 +82,29 @@ function showPage(id) {
     document.getElementById(id).classList.add('active');
 }
 
+// Покупка круток
+async function buy(count) {
+    const res = await api('/buy', { user_id: uid, count: count });
+    if (res.success) {
+        updateUI(); // Сразу обновит и клубнику, и крутки на экране
+    } else {
+        alert("Недостаточно клубники!");
+    }
+}
+
+// Сама гача
+async function spin(count) {
+    const res = await api('/spin', { user_id: uid, count: count });
+    if (res.success) {
+        // Формируем красивый список выпавших питомцев
+        const names = res.pets.map(p => `${p.name} (${p.rarity})`).join(', ');
+        document.getElementById('gacha-res').innerText = "Выпало: " + names;
+        updateUI(); // Обновит счетчик круток (уменьшит его) и гаранты
+    } else {
+        alert(res.error); // Выведет "Недостаточно круток", если их 0
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     
@@ -114,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
