@@ -38,6 +38,13 @@ async function updateUI() {
     if (document.getElementById('p-blu')) document.getElementById('p-blu').innerText = u.pity_blue;
 }
 
+async function collectStrawberry() {
+    const res = await api('/click', { user_id: uid });
+    if (res.success) {
+        updateUI();
+    }
+}
+
 // Переименовали функцию в buy, чтобы HTML её видел
 async function buy(count) {
     const res = await api('/buy', { user_id: uid, count: count });
@@ -94,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
