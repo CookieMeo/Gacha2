@@ -22,7 +22,7 @@ async function updateUI() {
 
     // Обновляем клубнику ВЕЗДЕ, где есть эти ID
     if (document.getElementById('straw-count')) document.getElementById('straw-count').innerText = u.strawberry;
-    if (document.getElementById('gacha-straw')) document.getElementById('straw-count').innerText = u.strawberry;
+    if (document.getElementById('gacha-straw')) document.getElementById('gacha-straw').innerText = u.strawberry;
 
     // Обновляем уровень и кнопку
     if (document.getElementById('lvl-display')) document.getElementById('lvl-display').innerText = "Уровень " + u.click_level;
@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
