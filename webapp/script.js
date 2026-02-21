@@ -1,18 +1,8 @@
 const tg = window.Telegram.WebApp;
 const uid = tg.initDataUnsafe.user?.id || 12345;
 
-// Таблица цен для уровней (согласно твоим правилам)
 const UPGRADE_COSTS = {
-    2: 10,
-    3: 40,
-    4: 90,
-    5: 160,
-    6: 250,
-    7: 360,
-    8: 490,
-    9: 640,
-    10: 810,
-    11: 4000
+    2: 10, 3: 40, 4: 90, 5: 160, 6: 250, 7: 360, 8: 490, 9: 640, 10: 810, 11: 4000
 };
 
 async function api(path, body) {
@@ -23,53 +13,34 @@ async function api(path, body) {
             body: JSON.stringify(body)
         });
         return await r.json();
-    } catch (e) {
-        console.error("Ошибка API:", e);
-        return { success: false };
-    }
+    } catch (e) { return { success: false }; }
 }
 
 async function updateUI() {
-    console.log("Обновление интерфейса...");
     const u = await api('/get_user', { user_id: uid });
     if (!u) return;
 
-    // 1. Обновляем счетчик клубники (id="straw-count")
-    const strawEl = document.getElementById('straw-count');
-    if (strawEl) strawEl.innerText = u.strawberry;
+    // Обновляем клубнику ВЕЗДЕ, где есть эти ID
+    if (document.getElementById('straw-count')) document.getElementById('straw-count').innerText = u.strawberry;
 
-    // 2. Обновляем заголовок уровня (id="lvl-display")
-    const lvlEl = document.getElementById('lvl-display');
-    if (lvlEl) lvlEl.innerText = "Уровень " + u.click_level;
-
-    // 3. Обновляем кнопку улучшения (id="upgrade-btn")
+    // Обновляем уровень и кнопку
+    if (document.getElementById('lvl-display')) document.getElementById('lvl-display').innerText = "Уровень " + u.click_level;
+    
     const upBtn = document.getElementById('upgrade-btn');
     if (upBtn) {
-        const nextLevel = u.click_level + 1;
-        const cost = UPGRADE_COSTS[nextLevel];
-
-        if (cost !== undefined) {
-            upBtn.innerText = `Улучшить (${cost} 🍓)`;
-            upBtn.style.display = 'inline-block'; // Показываем кнопку
-        } else {
-            // Если уровня нет в списке (максимальный уровень)
-            upBtn.innerText = "Макс. уровень";
-            upBtn.disabled = true; 
-        }
+        const cost = UPGRADE_COSTS[u.click_level + 1];
+        if (cost) upBtn.innerText = `Улучшить (${cost} 🍓)`;
+        else upBtn.innerText = "Макс. уровень";
     }
+
+    // Обновляем гаранты в Гаче
+    if (document.getElementById('p-red')) document.getElementById('p-red').innerText = u.pity_red;
+    if (document.getElementById('p-blu')) document.getElementById('p-blu').innerText = u.pity_blue;
 }
 
-// Клик по клубнике
-async function collectStrawberry() {
-    const res = await api('/click', { user_id: uid });
-    if (res.success) {
-        updateUI();
-    }
-}
-
-// Улучшение кликера
-async function upgradeClicker() {
-    const res = await api('/upgrade', { user_id: uid });
+// Переименовали функцию в buy, чтобы HTML её видел
+async function buy(count) {
+    const res = await api('/buy', { user_id: uid, count: count });
     if (res.success) {
         updateUI();
     } else {
@@ -77,21 +48,37 @@ async function upgradeClicker() {
     }
 }
 
+async function spin(count) {
+    const res = await api('/spin', { user_id: uid, count: count });
+    if (res.success) {
+        const names = res.pets.map(p => `${p.name} (${p.rarity})`).join(', ');
+        document.getElementById('gacha-res').innerText = "Выпало: " + names;
+        updateUI();
+    } else alert(res.error);
+}
+
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById(id);
-    if (target) target.classList.add('active');
+    document.getElementById(id).classList.add('active');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     
-    // Привязываем кнопки по их правильным ID из твоего HTML
-    const collectBtn = document.getElementById('collect-btn');
-    if (collectBtn) collectBtn.onclick = collectStrawberry;
+    // Привязка клика и улучшения
+    if (document.getElementById('collect-btn')) document.getElementById('collect-btn').onclick = async () => {
+        await api('/click', { user_id: uid });
+        updateUI();
+    };
+    
+    if (document.getElementById('upgrade-btn')) document.getElementById('upgrade-btn').onclick = async () => {
+        const res = await api('/upgrade', { user_id: uid });
+        if (res.success) updateUI(); else alert("Мало клубники!");
+    };
 
-    const upgradeBtn = document.getElementById('upgrade-btn');
-    if (upgradeBtn) upgradeBtn.onclick = upgradeClicker;
+    // Привязка кнопок круток
+    if (document.getElementById('spin-1')) document.getElementById('spin-1').onclick = () => spin(1);
+    if (document.getElementById('spin-10')) document.getElementById('spin-10').onclick = () => spin(10);
     
     // Навигация
     document.getElementById('home-btn').onclick = () => showPage('home');
@@ -107,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
