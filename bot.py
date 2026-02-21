@@ -61,16 +61,23 @@ async def handle_index(request):
 async def health_check(request):
     return web.Response(text="OK")
 
+# 1. Сначала добавим маленькую функцию-обработчик для корня
+async def handle_root(request):
+    # Указываем путь к index.html
+    return web.FileResponse(os.path.join(WEBAPP_PATH, 'index.html'))
+
 async def start_web_server():
     app = web.Application()
     
-    # 1. Сначала добавляем health check
+    # 2. Добавляем ПЕРВЫМ делом обработчик для главной страницы
+    # Теперь при заходе на https://.../ будет сразу открываться игра
+    app.router.add_get('/', handle_root)
+    
     app.router.add_get('/health', health_check)
     
-    # 2. Главная магия: делаем так, чтобы ВСЕ файлы из папки webapp 
-    # были доступны по прямому адресу (без /webapp/)
-    # Это исправит 404 для картинок
-    app.router.add_static('/', path=WEBAPP_PATH, name='static', follow_symlinks=True, show_index=True)
+    # 3. Раздаем статику для остальных файлов (js, css, картинки)
+    # Убираем параметр show_index=True, чтобы список файлов больше не показывался
+    app.router.add_static('/', path=WEBAPP_PATH, name='static')
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -78,7 +85,8 @@ async def start_web_server():
     port = int(os.environ.get("PORT", 10000))
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-    logging.info(f"✅ Сервер раздает файлы из {WEBAPP_PATH} на порту {port}")
+    logging.info(f"✅ Сервер настроен. index.html открывается автоматически.")
+
 
 # --- ЗАПУСК ---
 
@@ -98,6 +106,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
