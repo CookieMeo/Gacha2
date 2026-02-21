@@ -69,14 +69,19 @@ async function buy(count) {
 }
 
 async function spin(count) {
+    console.log("Пытаюсь крутить гачу: x" + count);
     const res = await api('/spin', { user_id: uid, count: count });
+    
     if (res.success) {
+        console.log("Успех! Выпали: ", res.pets);
         const names = res.pets.map(p => `${p.name} (${p.rarity})`).join(', ');
         document.getElementById('gacha-res').innerText = "Выпало: " + names;
-        updateUI();
-    } else alert(res.error);
+        updateUI(); // Обновит счетчик круток на экране
+    } else {
+        console.error("Ошибка гачи:", res.error);
+        alert(res.error || "Ошибка при крутке");
+    }
 }
-
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -137,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
