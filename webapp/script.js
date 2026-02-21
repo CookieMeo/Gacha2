@@ -1,7 +1,20 @@
 const tg = window.Telegram.WebApp;
 const uid = tg.initDataUnsafe.user?.id || 12345;
 
-// --- ПОМОЩНИКИ ---
+// Таблица цен для уровней (согласно твоим правилам)
+const UPGRADE_COSTS = {
+    2: 10,
+    3: 40,
+    4: 90,
+    5: 160,
+    6: 250,
+    7: 360,
+    8: 490,
+    9: 640,
+    10: 810,
+    11: 4000
+};
+
 async function api(path, body) {
     try {
         const r = await fetch('/api' + path, {
@@ -16,91 +29,69 @@ async function api(path, body) {
     }
 }
 
-
-
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-}
-
-// --- ОСНОВНАЯ ЛОГИКА ---
 async function updateUI() {
     console.log("Обновление интерфейса...");
     const u = await api('/get_user', { user_id: uid });
-    if (!u) {
-        console.error("Пользователь не получен!");
-        return;
-    }
+    if (!u) return;
 
-    // Безопасное обновление текста по ID
-    const setText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = text;
-    };
+    // 1. Обновляем счетчик клубники (id="straw-count")
+    const strawEl = document.getElementById('straw-count');
+    if (strawEl) strawEl.innerText = u.strawberry;
 
-    // Обновляем клубнику и уровень
-    setText('straw-count', u.strawberry);
-    setText('lvl-txt', "Уровень " + u.click_level);
-    
-    // Обновляем счетчики в гаче (если они есть)
-    setText('p-red', u.pity_red);
-    setText('p-ora', u.pity_orange);
-    setText('p-yel', u.pity_yellow);
-    setText('p-gre', u.pity_green);
-    setText('p-lbu', u.pity_lightblue);
-    setText('p-blu', u.pity_blue);
-    
-    // Кнопка улучшения
-    const costs = {2:10, 3:40, 4:90, 5:160, 6:250, 7:360, 8:490, 9:640, 10:810, 11:4000};
-    const upBtn = document.getElementById('up-btn');
+    // 2. Обновляем заголовок уровня (id="lvl-display")
+    const lvlEl = document.getElementById('lvl-display');
+    if (lvlEl) lvlEl.innerText = "Уровень " + u.click_level;
+
+    // 3. Обновляем кнопку улучшения (id="upgrade-btn")
+    const upBtn = document.getElementById('upgrade-btn');
     if (upBtn) {
-        if (u.click_level >= 11) {
-            upBtn.style.display = 'none';
+        const nextLevel = u.click_level + 1;
+        const cost = UPGRADE_COSTS[nextLevel];
+
+        if (cost !== undefined) {
+            upBtn.innerText = `Улучшить (${cost} 🍓)`;
+            upBtn.style.display = 'inline-block'; // Показываем кнопку
         } else {
-            const nextCost = costs[u.click_level + 1] || 0;
-            upBtn.innerText = `Улучшить (${nextCost} 🍓)`;
+            // Если уровня нет в списке (максимальный уровень)
+            upBtn.innerText = "Макс. уровень";
+            upBtn.disabled = true; 
         }
     }
-    console.log("Данные обновлены: ", u.strawberry, "🍓");
 }
 
+// Клик по клубнике
 async function collectStrawberry() {
-    console.log("Клик!");
     const res = await api('/click', { user_id: uid });
     if (res.success) {
-        updateUI(); // Принудительно обновляем экран
+        updateUI();
     }
 }
 
-async function buySpins(count) {
-    const res = await api('/buy', {user_id: uid, count: count});
-    if (res.success) updateUI(); else alert("Недостаточно клубники!");
+// Улучшение кликера
+async function upgradeClicker() {
+    const res = await api('/upgrade', { user_id: uid });
+    if (res.success) {
+        updateUI();
+    } else {
+        alert("Недостаточно клубники!");
+    }
 }
 
-async function upgrade() {
-    const res = await api('/upgrade', {user_id: uid});
-    if (res.success) updateUI(); else alert("Недостаточно клубники!");
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
 }
 
-// --- СТАРТ ---
 document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
+    
+    // Привязываем кнопки по их правильным ID из твоего HTML
+    const collectBtn = document.getElementById('collect-btn');
+    if (collectBtn) collectBtn.onclick = collectStrawberry;
 
-    const strawBtn = document.getElementById('strawberry-btn');
-    if (strawBtn) {
-        strawBtn.onclick = collectStrawberry;
-        console.log("Кнопка клубники готова");
-    }
-
-    // Привязка к кнопке улучшения
-    const upBtn = document.getElementById('up-btn');
-    if (upBtn) {
-        upBtn.onclick = async () => {
-            const res = await api('/upgrade', { user_id: uid });
-            if (res.success) updateUI();
-            else alert("Недостаточно клубники!");
-        };
-    }
+    const upgradeBtn = document.getElementById('upgrade-btn');
+    if (upgradeBtn) upgradeBtn.onclick = upgradeClicker;
     
     // Навигация
     document.getElementById('home-btn').onclick = () => showPage('home');
@@ -116,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
