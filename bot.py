@@ -43,14 +43,26 @@ async def api_get_user(request):
     return web.json_response(u)
 
 async def api_click(request):
-    uid = (await request.json())['user_id']
+    data = await request.json()
+    uid = data.get('user_id')
+    
+    # Проверяем, существует ли пользователь, если нет — создаем
     u = get_user(uid)
-    power = UPGRADES.get(u['click_level'], [0, u['click_level']])[1]
-    if u['click_level'] == 11: power = 100
+    if not u:
+        create_user(uid, "Игрок")
+        u = get_user(uid)
+        
+    # Считаем силу клика (по твоей таблице)
+    # Если уровня нет в списке, даем 1 клубнику (для 1 уровня)
+    power = UPGRADES.get(u['click_level'], [0, 1])[1]
+    if u['click_level'] >= 11: power = 100
+
     conn = sqlite3.connect('gacha_game.db')
     conn.execute("UPDATE users SET strawberry = strawberry + ? WHERE user_id = ?", (power, uid))
     conn.commit()
+    conn.close()
     return web.json_response({"success": True})
+
 
 async def api_buy(request):
     d = await request.json(); uid, count = d['user_id'], d['count']
@@ -126,6 +138,7 @@ async def start_web_server():
 
 
 if __name__ == "__main__": asyncio.run(main()) 
+
 
 
 
