@@ -87,16 +87,13 @@ async def api_upgrade(request):
     return web.json_response({"success": False})
 
 async def api_spin(request):
-    d = await request.json(); uid, count = d['user_id'], d['count']
-    u = get_user(uid)
-    if u['spins'] < count: return web.json_response({"success": False, "error": "Мало круток!"})
+    data = await request.json()
+    uid = data.get('user_id')
+    count = data.get('count', 1)
     
-    conn = sqlite3.connect('gacha_game.db')
-    conn.execute("UPDATE users SET spins = spins - ? WHERE user_id = ?", (count, uid))
-    conn.commit()
-    
-    res = [do_gacha_spin(uid) for _ in range(count)]
-    return web.json_response({"success": True, "pets": res})
+    # Вызываем логику из db.py
+    result = do_spins_logic(uid, count)
+    return web.json_response(result)
 
 async def main():
     app = web.Application()
@@ -105,7 +102,7 @@ async def main():
     app.router.add_post('/api/buy', api_buy)
     app.router.add_post('/api/upgrade', api_upgrade)
     app.router.add_post('/api/spin', api_spin)
-    app.router.add_static('/', path='./webapp', show_index=True)
+    app.router.add_static('/', path='./webapp/index.html', show_index=True)
     runner = web.AppRunner(app); await runner.setup()
     await web.TCPSite(runner, '0.0.0.0', int(os.environ.get("PORT", 10000))).start()
     await dp.start_polling(bot)
@@ -138,6 +135,7 @@ async def start_web_server():
 
 
 if __name__ == "__main__": asyncio.run(main()) 
+
 
 
 
