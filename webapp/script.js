@@ -58,16 +58,22 @@ async function upgradeClicker() {
     }
 }
 
-// Переименовали функцию в buy, чтобы HTML её видел
+// Покупка круток
 async function buy(count) {
     const res = await api('/buy', { user_id: uid, count: count });
     if (res.success) {
-        updateUI();
+        updateUI(); // Сразу обновит и клубнику, и крутки на экране
     } else {
         alert("Недостаточно клубники!");
     }
 }
 
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// Сама гача
 async function spin(count) {
     console.log("Пытаюсь крутить гачу: x" + count);
     const res = await api('/spin', { user_id: uid, count: count });
@@ -80,33 +86,6 @@ async function spin(count) {
     } else {
         console.error("Ошибка гачи:", res.error);
         alert(res.error || "Ошибка при крутке");
-    }
-}
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-}
-
-// Покупка круток
-async function buy(count) {
-    const res = await api('/buy', { user_id: uid, count: count });
-    if (res.success) {
-        updateUI(); // Сразу обновит и клубнику, и крутки на экране
-    } else {
-        alert("Недостаточно клубники!");
-    }
-}
-
-// Сама гача
-async function spin(count) {
-    const res = await api('/spin', { user_id: uid, count: count });
-    if (res.success) {
-        // Формируем красивый список выпавших питомцев
-        const names = res.pets.map(p => `${p.name} (${p.rarity})`).join(', ');
-        document.getElementById('gacha-res').innerText = "Выпало: " + names;
-        updateUI(); // Обновит счетчик круток (уменьшит его) и гаранты
-    } else {
-        alert(res.error); // Выведет "Недостаточно круток", если их 0
     }
 }
 
@@ -142,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
