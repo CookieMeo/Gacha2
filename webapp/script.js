@@ -71,6 +71,7 @@ function updatePityCounters(user) {
     document.getElementById('pity-lightblue').innerText = user.pity_lightblue;
     document.getElementById('pity-blue').innerText = user.pity_blue;
     document.getElementById('pity-purple').innerText = user.pity_puple;
+}
 
 // Настройка кнопок при загрузке
 document.addEventListener('DOMContentLoaded', () => {
@@ -97,4 +98,3 @@ document.addEventListener('DOMContentLoaded', () => {
     
     updateUI();
 });
-
