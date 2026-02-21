@@ -45,6 +45,15 @@ async function collectStrawberry() {
     }
 }
 
+async function upgradeClicker() {
+    const res = await api('/upgrade', { user_id: uid });
+    if (res.success) {
+        updateUI();
+    } else {
+        alert("Недостаточно клубники!");
+    }
+}
+
 // Переименовали функцию в buy, чтобы HTML её видел
 async function buy(count) {
     const res = await api('/buy', { user_id: uid, count: count });
@@ -101,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
