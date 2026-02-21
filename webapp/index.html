@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gacha Game</title>
+    <title>Казино</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -19,11 +19,20 @@
 
         <!-- Страница: ГАЧА -->
         <div id="gacha" class="page">
-            <h1>Гача-автомат</h1>
+            <h1>Гача</h1>
             <div class="gacha-container">
-                <img src="roulette.gif" alt="Gacha" id="gacha-img">
-                <div id="gacha-result">Нажми "Крутить"!</div>
-                <button id="spin-btn">Крутить (100 🍓)</button>
+                <div class="pity-list">
+                    До Красного: <span id="p-red">50</span> | До Синего: <span id="p-blue">3</span>
+                </div>
+                <div id="gacha-res">Жми крутить!</div>
+                <button onclick="spin(1)">x1</button>
+                <button onclick="spin(10)">x10</button>
+                <hr>
+                <div class="shop">
+                    <button onclick="buy(1)">+1 (100🍓)</button>
+                    <button onclick="buy(10)">+10 (1к🍓)</button>
+                    <button onclick="buy(100)">+100 (10к🍓)</button>
+                </div>
             </div>
             <div class="stats">
                 Клубника: <span id="strawberry-count-gacha">0</span>
@@ -32,9 +41,10 @@
 
         <!-- Страница: ИГРА (КЛИКЕР) -->
         <div id="game" class="page">
-            <h1>Сбор клубники</h1>
+            <h2 id="lvl-display">Уровень 1</h2>
             <div class="clicker-container">
-                <img src="strawberry.png" alt="Strawberry" id="collect-btn">
+                <img src="strawberry.png" alt="strawberry" id="collect-btn">
+                <button id="upgrade-btn">Улучшить (10 🍓)</button>
                 <div class="stats">
                     🍓 <span id="strawberry-count">0</span>
                 </div>
@@ -64,3 +74,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
