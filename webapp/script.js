@@ -43,8 +43,6 @@ async function updateUI() {
 
 async function collectStrawberry() {
     await api('/click', {user_id: uid});
-    updateUI();
-    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 }
 
 async function spin(count) {
@@ -84,3 +82,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
