@@ -14,6 +14,32 @@ init_db()
 # Цены и сила клика
 UPGRADES = {2:[10,2], 3:[40,3], 4:[90,4], 5:[160,5], 6:[250,6], 7:[360,7], 8:[490,8], 9:[640,9], 10:[810,10], 11:[4000,100]}
 
+# 1. Сначала добавим маленькую функцию-обработчик для корня
+async def handle_root(request):
+    # Указываем путь к index.html
+    return web.FileResponse(os.path.join(WEBAPP_PATH, 'index.html'))
+
+async def start_web_server():
+    app = web.Application()
+    
+    # 2. Добавляем ПЕРВЫМ делом обработчик для главной страницы
+    # Теперь при заходе на https://.../ будет сразу открываться игра
+    app.router.add_get('/', handle_root)
+    
+    app.router.add_get('/health', health_check)
+    
+    # 3. Раздаем статику для остальных файлов (js, css, картинки)
+    # Убираем параметр show_index=True, чтобы список файлов больше не показывался
+    app.router.add_static('/', path=WEBAPP_PATH, name='static')
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logging.info(f"✅ Сервер настроен. index.html открывается автоматически.")
+
 @dp.message(Command("add_pet"))
 async def add_pet(m: types.Message):
     if m.from_user.id != ADMIN_USER_ID: return
@@ -107,34 +133,9 @@ async def main():
     await web.TCPSite(runner, '0.0.0.0', int(os.environ.get("PORT", 10000))).start()
     await dp.start_polling(bot)
 
-# 1. Сначала добавим маленькую функцию-обработчик для корня
-async def handle_root(request):
-    # Указываем путь к index.html
-    return web.FileResponse(os.path.join(WEBAPP_PATH, 'index.html'))
-
-async def start_web_server():
-    app = web.Application()
-    
-    # 2. Добавляем ПЕРВЫМ делом обработчик для главной страницы
-    # Теперь при заходе на https://.../ будет сразу открываться игра
-    app.router.add_get('/', handle_root)
-    
-    app.router.add_get('/health', health_check)
-    
-    # 3. Раздаем статику для остальных файлов (js, css, картинки)
-    # Убираем параметр show_index=True, чтобы список файлов больше не показывался
-    app.router.add_static('/', path=WEBAPP_PATH, name='static')
-    
-    runner = web.AppRunner(app)
-    await runner.setup()
-    
-    port = int(os.environ.get("PORT", 10000))
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-    logging.info(f"✅ Сервер настроен. index.html открывается автоматически.")
-
 
 if __name__ == "__main__": asyncio.run(main()) 
+
 
 
 
