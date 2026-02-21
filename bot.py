@@ -7,7 +7,7 @@ from db import init_db, get_user, create_user, do_gacha_spin
 TOKEN = "8120653173:AAGIVbVAbbENlSvDt7ZOlsuSbtNRMDt1H-A"
 ADMIN_USER_ID = 1562471251 # ТВОЙ ID
 WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # ПРОВЕРЬ СВОЙ URL
-
+bot = Bot(token=TOKEN)
 dp = Dispatcher()
 init_db()
 
@@ -99,4 +99,5 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__": asyncio.run(main()) 
+
 
