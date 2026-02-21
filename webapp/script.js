@@ -102,10 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await api('/upgrade', { user_id: uid });
         if (res.success) updateUI(); else alert("Мало клубники!");
     };
-
-    // Привязка кнопок круток
-    if (document.getElementById('spin-1')) document.getElementById('spin-1').onclick = () => spin(1);
-    if (document.getElementById('spin-10')) document.getElementById('spin-10').onclick = () => spin(10);
     
     // Навигация
     document.getElementById('home-btn').onclick = () => showPage('home');
@@ -121,12 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
-
-
-
-
-
-
 
 
 
