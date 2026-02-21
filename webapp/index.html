@@ -1,94 +1,66 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Казино</title>
+    <title>Gacha Game</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <!-- HEADER (optional, or use Telegram's built-in header) -->
-
-        <!-- MAIN CONTENT SECTIONS -->
-        <div id="home-screen" class="screen active">
-            <h2>Мои Питомцы</h2>
-            <div id="pet-grid" class="pet-grid">
-                <!-- Pets will be loaded here -->
+    <div id="app">
+        <!-- Страница: ДОМ -->
+        <div id="home" class="page active">
+            <h1>Мои Питомцы</h1>
+            <div id="pet-list" class="pet-grid">
+                <!-- Сюда JS добавит питомцев -->
             </div>
-            <p id="no-pets-message" class="info-message hidden">У вас пока нет питомцев. Крутите гачу!</p>
         </div>
 
-        <div id="gacha-screen" class="screen hidden">
-            <h2>🎰 Крутить Гачу</h2>
-            <p>Ваша клубника: <span id="gacha-strawberry-balance">0</span></p>
-            <div class="gacha-area">
-                <img id="roulette-gif" src="assets/roulette.gif" alt="Рулетка" class="roulette-gif">
-                <div id="gacha-result" class="gacha-result">
-                    <!-- Result pet will appear here -->
+        <!-- Страница: ГАЧА -->
+        <div id="gacha" class="page">
+            <h1>Гача-автомат</h1>
+            <div class="gacha-container">
+                <img src="roulette.gif" alt="Gacha" id="gacha-img">
+                <div id="gacha-result">Нажми "Крутить"!</div>
+                <button id="spin-btn">Крутить (100 🍓)</button>
+            </div>
+            <div class="stats">
+                Клубника: <span id="strawberry-count-gacha">0</span>
+            </div>
+        </div>
+
+        <!-- Страница: ИГРА (КЛИКЕР) -->
+        <div id="game" class="page">
+            <h1>Сбор клубники</h1>
+            <div class="clicker-container">
+                <img src="strawberry.png" alt="Strawberry" id="collect-btn">
+                <div class="stats">
+                    🍓 <span id="strawberry-count">0</span>
                 </div>
             </div>
-            <div class="gacha-buttons">
-                <button id="spin-1-btn" class="btn">Крутить 1 раз (100 🍓)</button>
-                <button id="spin-10-btn" class="btn">Крутить 10 раз (1000 🍓)</button>
-            </div>
-            <div id="gacha-guarantees" class="gacha-guarantees">
-                <h3>Следующие гаранты:</h3>
-                <ul id="guarantee-list">
-                    <!-- Guarantees will be loaded here -->
-                </ul>
-            </div>
-            <p id="gacha-message" class="info-message hidden"></p>
         </div>
 
-        <div id="game-screen" class="screen hidden">
-            <h2>🍓 Клубничная Ферма</h2>
-            <p>Ваша клубника: <span id="game-strawberry-balance">0</span></p>
-            <div class="strawberry-clicker">
-                <img id="strawberry-img" src="assets/strawberry.png" alt="Клубника" class="strawberry-img">
-                <div id="click-feedback-container"></div>
-            </div>
-            <div class="clicker-info">
-                <p>Уровень кликера: <span id="clicker-level">1</span></p>
-                <p>Клубники за клик: <span id="per-click-amount">1</span></p>
-            </div>
-            <button id="upgrade-clicker-btn" class="btn upgrade-btn">Улучшить кликер (<span id="upgrade-cost">--</span> 🍓)</button>
-            <p id="upgrade-message" class="info-message hidden"></p>
-        </div>
-
-        <div id="profile-screen" class="screen hidden">
-            <h2>👤 Профиль</h2>
-            <div class="profile-info">
-                <img id="profile-avatar" src="" alt="Аватар" class="profile-avatar hidden">
-                <p><strong>Ник:</strong> <span id="profile-username"></span></p>
-                <p><strong>Всего питомцев:</strong> <span id="profile-total-pets">0</span></p>
-                <p><strong>Клубники потрачено:</strong> <span id="profile-strawberries-spent">0</span></p>
-                <p><strong>Кликов сделано:</strong> <span id="profile-total-clicks">0</span></p>
-            </div>
-            <div class="promocode-section">
-                <h3>Ввести промокод</h3>
-                <input type="text" id="promocode-input" placeholder="Введите промокод">
-                <button id="apply-promocode-btn" class="btn">Применить</button>
-                <p id="promocode-message" class="info-message hidden"></p>
+        <!-- Страница: ПРОФИЛЬ -->
+        <div id="profile" class="page">
+            <h1>Профиль</h1>
+            <div class="profile-card">
+                <p>Клубника: <span id="profile-strawberry">0</span></p>
+                <p>Крутки: <span id="profile-spins">0</span></p>
+                <hr>
+                <input type="text" id="promo-input" placeholder="Введите промокод">
+                <button id="apply-promo">ОК</button>
             </div>
         </div>
 
-        <!-- NAVIGATION BUTTONS -->
-        <div class="bottom-nav">
-            <div class="nav-item" id="home-btn">🏠Дом</div>
-            <div class="nav-item" id="gacha-btn">🎰Гача</div>
-            <div class="nav-item" id="game-btn">🍓Игра</div>
-            <div class="nav-item" id="profile-btn">👤Профиль</div>
-        </div>
+        <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" id="home-btn">🏠 <span>Дом</span></div>
+            <div class="nav-item" id="gacha-btn">🎰 <span>Гача</span></div>
+            <div class="nav-item" id="game-btn">🍓 <span>Игра</span></div>
+            <div class="nav-item" id="profile-btn">👤 <span>Профиль</span></div>
+        </nav>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
