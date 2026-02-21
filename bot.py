@@ -1,112 +1,96 @@
-import logging
-import asyncio
-import os
-import sys
+import logging, asyncio, os, sys, sqlite3
 from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.filters import Command
 from aiogram.types import WebAppInfo
-from aiogram.client.default import DefaultBotProperties
 from aiohttp import web
+from db import init_db, get_user, create_user, do_spins
 
-# --- ИМПОРТ ИЗ ТВОЕЙ БД ---
-try:
-    from db import init_db, get_user, create_user
-except ImportError:
-    def init_db(): pass
-    def get_user(x): return None
-    def create_user(x, y): pass
+TOKEN = "8120653173:AAGIVbVAbbENlSvDt7ZOlsuSbtNRMDt1H-A"
+ADMIN_USER_ID = 1562471251 # ТВОЙ ID
+WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # ПРОВЕРЬ СВОЙ URL
 
-# --- КОНФИГУРАЦИЯ ---
-TOKEN = "8120653173:AAGIVbVAbbENlSvDt7ZOlsuSbtNRMDt1H-A" 
-WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # Убедись, что это адрес из настроек Render
-
-# Настройка путей
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WEBAPP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "webapp")
-
-bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=TOKEN)
 dp = Dispatcher()
+init_db()
 
-# --- ЛОГИКА БОТА ---
+# --- АДМИН КОМАНДЫ ---
+@dp.message(Command("add_pet"))
+async def add_pet(m: types.Message):
+    if m.from_user.id != ADMIN_USER_ID: return
+    # Формат: /add_pet Имя, Редкость, URL, 0(станд)/1(ивент)
+    try:
+        a = m.text.split(maxsplit=1)[1].split(', ')
+        conn = sqlite3.connect('gacha_game.db')
+        conn.execute("INSERT INTO pets (name, rarity, image_url, is_event) VALUES (?,?,?,?)", (a[0], a[1], a[2], int(a[3])))
+        conn.commit()
+        await m.answer("✅ Добавлено!")
+    except: await m.answer("Ошибка! Формат: Имя, Красное, url, 1")
 
-def get_main_keyboard():
-    builder = InlineKeyboardBuilder()
-    # Отправляем пользователя строго на корень сайта
-    builder.row(types.InlineKeyboardButton(
-        text="🎮 Играть", 
-        web_app=WebAppInfo(url=f"{WEB_APP_URL}/"))
-    )
-    return builder.as_markup()
+@dp.message(Command("add_promo"))
+async def add_promo(m: types.Message):
+    if m.from_user.id != ADMIN_USER_ID: return
+    try:
+        a = m.text.split(maxsplit=1)[1].split(', ')
+        conn = sqlite3.connect('gacha_game.db')
+        conn.execute("INSERT INTO promocodes VALUES (?,?,?,?)", (a[0], int(a[1]), int(a[2]), int(a[3])))
+        conn.commit()
+        await m.answer("✅ Промокод добавлен!")
+    except: await m.answer("Ошибка! Формат: КОД, клубника, крутки, кол-во")
 
-@dp.message(CommandStart())
-async def command_start_handler(message: types.Message):
-    user_id = message.from_user.id
-    username = message.from_user.username or message.from_user.first_name
-    user = get_user(user_id)
-    if not user:
-        create_user(user_id, username)
-    await message.answer(f"Привет, {username}! Жми кнопку:", reply_markup=get_main_keyboard())
+# --- API ДЛЯ МИНИ-АПП ---
+async def api_get_user(request):
+    uid = (await request.json()).get('user_id')
+    return web.json_response(get_user(uid))
 
-# --- ВЕБ-СЕРВЕР ---
+async def api_click(request):
+    uid = (await request.json()).get('user_id')
+    u = get_user(uid)
+    power = 100 if u['click_level'] == 11 else u['click_level']
+    conn = sqlite3.connect('gacha_game.db')
+    conn.execute("UPDATE users SET strawberry = strawberry + ? WHERE user_id = ?", (power, uid))
+    conn.commit()
+    return web.json_response({"success": True, "strawberry": u['strawberry'] + power})
 
-async def handle_index(request):
-    """Этот обработчик отвечает за главную страницу"""
-    path = os.path.join(WEBAPP_PATH, "index.html")
-    if os.path.exists(path):
-        return web.FileResponse(path)
-    return web.Response(text=f"Файл index.html не найден по пути: {path}", status=404)
+async def api_spin(request):
+    d = await request.json()
+    return web.json_response(do_spins(d['user_id'], d.get('count', 1)))
 
-async def health_check(request):
-    return web.Response(text="OK")
+async def api_buy_spins(request):
+    d = await request.json()
+    cost = d['count'] * 100
+    u = get_user(d['user_id'])
+    if u['strawberry'] >= cost:
+        conn = sqlite3.connect('gacha_game.db')
+        conn.execute("UPDATE users SET strawberry=strawberry-?, spins=spins+? WHERE user_id=?", (cost, d['count'], d['user_id']))
+        conn.commit()
+        return web.json_response({"success": True})
+    return web.json_response({"success": False})
 
-# 1. Сначала добавим маленькую функцию-обработчик для корня
-async def handle_root(request):
-    # Указываем путь к index.html
-    return web.FileResponse(os.path.join(WEBAPP_PATH, 'index.html'))
+async def api_upgrade(request):
+    uid = (await request.json()).get('user_id')
+    u = get_user(uid)
+    costs = {2:10, 3:40, 4:90, 5:160, 6:250, 7:360, 8:490, 9:640, 10:810, 11:4000}
+    next_lvl = u['click_level'] + 1
+    if next_lvl in costs and u['strawberry'] >= costs[next_lvl]:
+        conn = sqlite3.connect('gacha_game.db')
+        conn.execute("UPDATE users SET strawberry=strawberry-?, click_level=? WHERE user_id=?", (costs[next_lvl], next_lvl, uid))
+        conn.commit()
+        return web.json_response({"success": True})
+    return web.json_response({"success": False})
 
-async def start_web_server():
+# --- ЗАПУСК СЕРВЕРА ---
+async def main():
     app = web.Application()
-    
-    # 2. Добавляем ПЕРВЫМ делом обработчик для главной страницы
-    # Теперь при заходе на https://.../ будет сразу открываться игра
-    app.router.add_get('/', handle_root)
-    
-    app.router.add_get('/health', health_check)
-    
-    # 3. Раздаем статику для остальных файлов (js, css, картинки)
-    # Убираем параметр show_index=True, чтобы список файлов больше не показывался
-    app.router.add_static('/', path=WEBAPP_PATH, name='static')
+    app.router.add_post('/api/get_user', api_get_user)
+    app.router.add_post('/api/click', api_click)
+    app.router.add_post('/api/spin', api_spin)
+    app.router.add_post('/api/buy', api_buy_spins)
+    app.router.add_post('/api/upgrade', api_upgrade)
+    app.router.add_static('/', path='./webapp', show_index=True)
     
     runner = web.AppRunner(app)
     await runner.setup()
-    
-    port = int(os.environ.get("PORT", 10000))
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-    logging.info(f"✅ Сервер настроен. index.html открывается автоматически.")
-
-
-# --- ЗАПУСК ---
-
-async def main():
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-    
-    # ОТЛАДКА: Проверяем файлы перед стартом
-    logging.info(f"Текущая папка: {os.getcwd()}")
-    if os.path.exists(WEBAPP_PATH):
-        logging.info(f"Содержимое webapp: {os.listdir(WEBAPP_PATH)}")
-    else:
-        logging.error(f"❌ ПАПКА {WEBAPP_PATH} НЕ НАЙДЕНА!")
-
-    init_db()
-    await start_web_server()
+    await web.TCPSite(runner, '0.0.0.0', int(os.environ.get("PORT", 10000))).start()
     await dp.start_polling(bot)
 
-if __name__ == "__main__":
-    asyncio.run(main())
-
-
-
-
+if __name__ == "__main__": asyncio.run(main())
