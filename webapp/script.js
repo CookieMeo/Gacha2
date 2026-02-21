@@ -104,12 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Кнопки
     if (document.getElementById('collect-btn')) document.getElementById('collect-btn').onclick = collectStrawberry;
-    if (document.getElementById('upgrade-btn')) document.getElementById('upgrade-btn').onclick = upgrade;
+    if (document.getElementById('upgrade-btn')) document.getElementById('upgrade-btn').onclick = upgradeClicker;
     if (document.getElementById('spin-1')) document.getElementById('spin-1').onclick = () => spin(1);
     if (document.getElementById('spin-10')) document.getElementById('spin-10').onclick = () => spin(10);
 
     updateUI();
 });
+
 
 
 
