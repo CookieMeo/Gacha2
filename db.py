@@ -1,6 +1,52 @@
 import sqlite3
 import random
 
+def init_db():
+    conn = sqlite3.connect('gacha_game.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY,
+            username TEXT,
+            strawberry INTEGER DEFAULT 0,
+            spins INTEGER DEFAULT 0,
+            click_level INTEGER DEFAULT 1,
+            pity_red INTEGER DEFAULT 50,
+            pity_orange INTEGER DEFAULT 30,
+            pity_yellow INTEGER DEFAULT 15,
+            pity_green INTEGER DEFAULT 10,
+            pity_lightblue INTEGER DEFAULT 5,
+            pity_blue INTEGER DEFAULT 3,
+            guaranteed_event INTEGER DEFAULT 0
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT, rarity TEXT, image_url TEXT, is_event INTEGER DEFAULT 0
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS promocodes (
+            code TEXT PRIMARY KEY, reward_strawberry INTEGER, reward_spins INTEGER, uses INTEGER
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def get_user(user_id):
+    conn = sqlite3.connect('gacha_game.db')
+    conn.row_factory = sqlite3.Row
+    user = conn.execute('SELECT * FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    conn.close()
+    return dict(user) if user else None
+
+def create_user(user_id, username):
+    conn = sqlite3.connect('gacha_game.db')
+    conn.execute('INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)', (user_id, username))
+    conn.commit()
+    conn.close()
+    
 def do_spins_logic(user_id, count=1):
     conn = sqlite3.connect('gacha_game.db')
     cursor = conn.cursor()
