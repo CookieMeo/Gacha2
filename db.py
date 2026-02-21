@@ -32,6 +32,12 @@ def get_user(user_id):
     conn.close()
     return dict(user) if user else None
 
+def create_user(user_id, username):
+    conn = sqlite3.connect('gacha_game.db')
+    conn.execute('INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)', (user_id, username))
+    conn.commit()
+    conn.close()
+
 def do_gacha_spin(user_id):
     conn = sqlite3.connect('gacha_game.db')
     cursor = conn.cursor()
