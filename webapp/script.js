@@ -27,6 +27,21 @@ function updateUI() {
     document.getElementById('profile-spins').innerText = user.spins;
 }
 
+async function upgradeClicker() {
+    const response = await fetch('/api/upgrade', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: getUserId() })
+    });
+    const data = await response.json();
+    if (data.success) {
+        alert("Уровень повышен!");
+        location.reload(); // Проще всего обновить данные так
+    } else {
+        alert("Недостаточно клубники!");
+    }
+}
+
 // Клик по клубнике
 function collectStrawberry() {
     user.strawberry += 1; // Пока без бэкенда просто прибавляем
@@ -34,6 +49,28 @@ function collectStrawberry() {
     // Эффект вибрации для Telegram
     if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 }
+
+async function buySpins(amount) {
+    const response = await fetch('/api/buy_spins', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: getUserId(), amount: amount })
+    });
+    const data = await response.json();
+    if (data.success) {
+        alert("Крутки куплены!");
+        updateUI();
+    }
+}
+
+function updatePityCounters(user) {
+    document.getElementById('pity-red').innerText = user.pity_red;
+    document.getElementById('pity-orange').innerText = user.pity_orange;
+    document.getElementById('pity-yellow').innerText = user.pity_yellow;
+    document.getElementById('pity-green').innerText = user.pity_green;
+    document.getElementById('pity-lightblue').innerText = user.pity_lightblue;
+    document.getElementById('pity-blue').innerText = user.pity_blue;
+    document.getElementById('pity-purple').innerText = user.pity_puple;
 
 // Настройка кнопок при загрузке
 document.addEventListener('DOMContentLoaded', () => {
@@ -60,3 +97,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     updateUI();
 });
+
