@@ -98,6 +98,34 @@ async def main():
     await web.TCPSite(runner, '0.0.0.0', int(os.environ.get("PORT", 10000))).start()
     await dp.start_polling(bot)
 
+# 1. Сначала добавим маленькую функцию-обработчик для корня
+async def handle_root(request):
+    # Указываем путь к index.html
+    return web.FileResponse(os.path.join(WEBAPP_PATH, 'index.html'))
+
+async def start_web_server():
+    app = web.Application()
+    
+    # 2. Добавляем ПЕРВЫМ делом обработчик для главной страницы
+    # Теперь при заходе на https://.../ будет сразу открываться игра
+    app.router.add_get('/', handle_root)
+    
+    app.router.add_get('/health', health_check)
+    
+    # 3. Раздаем статику для остальных файлов (js, css, картинки)
+    # Убираем параметр show_index=True, чтобы список файлов больше не показывался
+    app.router.add_static('/', path=WEBAPP_PATH, name='static')
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logging.info(f"✅ Сервер настроен. index.html открывается автоматически.")
+
+
 if __name__ == "__main__": asyncio.run(main()) 
+
 
 
