@@ -1,10 +1,10 @@
 import sqlite3
+import random
 
 def init_db():
     conn = sqlite3.connect('gacha_game.db')
     cursor = conn.cursor()
-    
-    # Таблица пользователей с новыми полями
+    # Таблица пользователей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -12,7 +12,6 @@ def init_db():
             strawberry INTEGER DEFAULT 0,
             spins INTEGER DEFAULT 0,
             click_level INTEGER DEFAULT 1,
-            
             pity_red INTEGER DEFAULT 50,
             pity_orange INTEGER DEFAULT 30,
             pity_yellow INTEGER DEFAULT 15,
@@ -22,31 +21,22 @@ def init_db():
             guaranteed_event INTEGER DEFAULT 0
         )
     ''')
-    
     # Таблица питомцев
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS pets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            rarity TEXT,
-            image_url TEXT,
-            is_event INTEGER DEFAULT 0
+            name TEXT, rarity TEXT, image_url TEXT, is_event INTEGER DEFAULT 0
         )
     ''')
-    
     # Таблица промокодов
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS promocodes (
-            code TEXT PRIMARY KEY,
-            reward_strawberry INTEGER,
-            reward_spins INTEGER,
-            uses_left INTEGER
+            code TEXT PRIMARY KEY, reward_strawberry INTEGER, reward_spins INTEGER, uses INTEGER
         )
     ''')
     conn.commit()
     conn.close()
 
-# Функция получения данных пользователя
 def get_user(user_id):
     conn = sqlite3.connect('gacha_game.db')
     conn.row_factory = sqlite3.Row
@@ -54,74 +44,67 @@ def get_user(user_id):
     conn.close()
     return dict(user) if user else None
 
-# --- ЛОГИКА ГАЧИ С ГАРАНТОМ ---
-def process_spin(user_id):
+def create_user(user_id, username):
+    conn = sqlite3.connect('gacha_game.db')
+    conn.execute('INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)', (user_id, username))
+    conn.commit()
+    conn.close()
+
+def do_spins(user_id, count=1):
     conn = sqlite3.connect('gacha_game.db')
     cursor = conn.cursor()
     user = get_user(user_id)
-    
-    if user['spins'] < 1:
-        return {"success": False, "error": "Нет круток"}
+    if user['spins'] < count: return {"success": False, "error": "Недостаточно круток"}
 
-    # Уменьшаем крутки и все счетчики гаранта
-    new_spins = user['spins'] - 1
-    pity = {
-        'red': user['pity_red'] - 1,
-        'orange': user['pity_orange'] - 1,
-        'yellow': user['pity_yellow'] - 1,
-        'green': user['pity_green'] - 1,
-        'lightblue': user['pity_lightblue'] - 1,
-        'blue': user['pity_blue'] - 1
-    }
+    results = []
+    # Копируем текущие счетчики
+    spins = user['spins']
+    p_red = user['pity_red']
+    p_ora = user['pity_orange']
+    p_yel = user['pity_yellow']
+    p_gre = user['pity_green']
+    p_lbu = user['pity_lightblue']
+    p_blu = user['pity_blue']
+    guar = user['guaranteed_event']
 
-    rarity_to_give = "Фиолетовое" # Обычный по умолчанию
-    
-    # Проверка приоритета гаранта (от высшего к низшему)
-    if pity['red'] <= 0: rarity_to_give = "Красное"
-    elif pity['orange'] <= 0: rarity_to_give = "Оранжевое"
-    elif pity['yellow'] <= 0: rarity_to_give = "Жёлтое"
-    elif pity['green'] <= 0: rarity_to_give = "Зеленое"
-    elif pity['lightblue'] <= 0: rarity_to_give = "Голубое"
-    elif pity['blue'] <= 0: rarity_to_give = "Синее"
-    else:
-        # Если гаранта нет, можно добавить рандом, но по условию 
-        # здесь мы просто ждем выполнения гаранта или даем дефолт
-        import random
-        if random.random() < 0.01: rarity_to_give = "Красное" # 1% шанс случайно
-
-    # Сброс счетчика выпавшей редкости
-    resets = {"Красное": 50, "Оранжевое": 30, "Жёлтое": 15, "Зеленое": 10, "Голубое": 5, "Синее": 3}
-    if rarity_to_give in resets:
-        pity[rarity_to_give.lower()] = resets[rarity_to_give]
-
-    # Логика 50/50 для красного
-    pet_query = "SELECT * FROM pets WHERE rarity = ? "
-    is_guaranteed = user['guaranteed_event']
-    new_guaranteed = is_guaranteed
-
-    if rarity_to_give == "Красное":
-        import random
-        if is_guaranteed or random.random() < 0.5:
-            pet_query += "AND is_event = 1"
-            new_guaranteed = 0
+    for _ in range(count):
+        spins -= 1
+        # Уменьшаем все счетчики
+        p_red -= 1; p_ora -= 1; p_yel -= 1; p_gre -= 1; p_lbu -= 1; p_blu -= 1
+        
+        # Определяем редкость по приоритету
+        res_rarity = "Фиолетовое" # Дефолт
+        if p_red <= 0: res_rarity = "Красное"
+        elif p_ora <= 0: res_rarity = "Оранжевое"
+        elif p_yel <= 0: res_rarity = "Жёлтое"
+        elif p_gre <= 0: res_rarity = "Зеленое"
+        elif p_lbu <= 0: res_rarity = "Голубое"
+        elif p_blu <= 0: res_rarity = "Синее"
+        
+        # Сброс счетчика выпавшей редкости
+        if res_rarity == "Красное":
+            # Логика 50/50
+            is_event = 0
+            if guar == 1 or random.random() < 0.5:
+                is_event = 1; guar = 0
+            else: guar = 1
+            pet = cursor.execute("SELECT * FROM pets WHERE rarity='Красное' AND is_event=? ORDER BY RANDOM() LIMIT 1", (is_event,)).fetchone()
+            p_red = 50
         else:
-            pet_query += "AND is_event = 0"
-            new_guaranteed = 1
-    
-    pet = conn.execute(pet_query + " ORDER BY RANDOM() LIMIT 1", (rarity_to_give,)).fetchone()
-    
-    if not pet: # Если в базе нет питомца такой редкости
-        pet = {"name": "Загадочное существо", "rarity": rarity_to_give, "image_url": ""}
-    else:
-        pet = dict(pet)
+            pet = cursor.execute("SELECT * FROM pets WHERE rarity=? ORDER BY RANDOM() LIMIT 1", (res_rarity,)).fetchone()
+            # Сброс счетчиков
+            if res_rarity == "Оранжевое": p_ora = 30
+            if res_rarity == "Жёлтое": p_yel = 15
+            if res_rarity == "Зеленое": p_gre = 10
+            if res_rarity == "Голубое": p_lbu = 5
+            if res_rarity == "Синее": p_blu = 3
 
-    cursor.execute('''
-        UPDATE users SET spins = ?, pity_red = ?, pity_orange = ?, pity_yellow = ?, 
-        pity_green = ?, pity_lightblue = ?, pity_blue = ?, guaranteed_event = ?
-        WHERE user_id = ?
-    ''', (new_spins, pity['red'], pity['orange'], pity['yellow'], pity['green'], 
-          pity['lightblue'], pity['blue'], new_guaranteed, user_id))
-    
+        pet_data = dict(pet) if pet else {"name": "Пусто", "rarity": res_rarity}
+        results.append(pet_data)
+
+    cursor.execute('''UPDATE users SET spins=?, pity_red=?, pity_orange=?, pity_yellow=?, 
+                      pity_green=?, pity_lightblue=?, pity_blue=?, guaranteed_event=? WHERE user_id=?''',
+                   (spins, p_red, p_ora, p_yel, p_gre, p_lbu, p_blu, guar, user_id))
     conn.commit()
     conn.close()
-    return {"success": True, "pet": pet, "user": get_user(user_id)}
+    return {"success": True, "pets": results}
