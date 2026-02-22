@@ -6,7 +6,7 @@ from aiohttp import web
 from db import init_db, get_user, create_user, do_spins_logic
 
 # --- КОНФИГУРАЦИЯ ---
-TOKEN = "8120653173:AAHA5SGMXg0ejb2hSJ4NMmh4P13130_PeKs" # !!! ОБЯЗАТЕЛЬНО ЗАМЕНИ НА СВОЙ ТОКЕН !!!
+TOKEN = "8120653173:AAE6CIrlC_BLOJn8OLRESiiawaZ8QtApvA4" # !!! ОБЯЗАТЕЛЬНО ЗАМЕНИ НА СВОЙ ТОКЕН !!!
 ADMIN_USER_ID = 1562471251 # !!! ОБЯЗАТЕЛЬНО ЗАМЕНИ НА СВОЙ ID !!!
 WEB_APP_URL = "https://gacha2-5ng0.onrender.com" # !!! ПРОВЕРЬ СВОЙ АДРЕС НА RENDER.COM !!!
 
@@ -178,5 +178,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
