@@ -15,6 +15,7 @@ dp = Dispatcher()
 
 # Инициализируем базу данных при старте
 init_db()
+DB_NAME = 'gacha_v2.db' 
 
 # --- СЛОВАРЬ УРОВНЕЙ ДЛЯ КЛИКЕРА ---
 UPGRADES = {
@@ -44,7 +45,7 @@ async def add_pet(m: types.Message):
     if m.from_user.id != ADMIN_USER_ID: return
     try:
         a = m.text.split(maxsplit=1)[1].split(', ')
-        conn = sqlite3.connect('gacha_game.db')
+        conn = sqlite3.connect(DB_NAME)
         conn.execute("INSERT INTO pets (name, rarity, image_url, is_event) VALUES (?,?,?,?)", (a[0], a[1], a[2], int(a[3])))
         conn.commit()
         await m.answer(f"✅ Питомец {a[0]} ({a[1]}) добавлен!")
@@ -56,7 +57,7 @@ async def add_promo(m: types.Message):
     if m.from_user.id != ADMIN_USER_ID: return
     try:
         a = m.text.split(maxsplit=1)[1].split(', ')
-        conn = sqlite3.connect('gacha_game.db')
+        conn = sqlite3.connect(DB_NAME)
         conn.execute("INSERT INTO promocodes VALUES (?,?,?,?)", (a[0], int(a[1]), int(a[2]), int(a[3])))
         conn.commit()
         await m.answer(f"✅ Промокод {a[0]} добавлен!")
@@ -73,7 +74,7 @@ async def reset_database(message: types.Message):
         init_db(reset=True) # Вызываем функцию сброса
         await message.answer("✅ База данных успешно сброшена и пересоздана!")
         # Можно также добавить:
-        conn = sqlite3.connect('gacha_game.db')
+        conn = sqlite3.connect(DB_NAME)
         seed_pets(conn.cursor()) # Заново заполняем персонажами
         conn.close()
     except Exception as e:
@@ -104,7 +105,7 @@ async def api_click(request):
         elif u['click_level'] >= 11:
             power = 100
 
-        conn = sqlite3.connect('gacha_game.db')
+        conn = sqlite3.connect(DB_NAME)
         conn.execute("UPDATE users SET strawberry = strawberry + ? WHERE user_id = ?", (power, uid))
         conn.commit()
         conn.close()
@@ -120,7 +121,7 @@ async def api_buy(request):
         cost = count * 100
         u = get_user(uid)
         if u and u['strawberry'] >= cost:
-            conn = sqlite3.connect('gacha_game.db')
+            conn = sqlite3.connect(DB_NAME)
             conn.execute("UPDATE users SET strawberry=strawberry-?, spins=spins+? WHERE user_id=?", (cost, count, uid))
             conn.commit()
             return web.json_response({"success": True})
@@ -135,7 +136,7 @@ async def api_upgrade(request):
         u = get_user(uid)
         nxt = u['click_level'] + 1
         if nxt in UPGRADES and u['strawberry'] >= UPGRADES[nxt][0]:
-            conn = sqlite3.connect('gacha_game.db')
+            conn = sqlite3.connect(DB_NAME)
             conn.execute("UPDATE users SET strawberry=strawberry-?, click_level=? WHERE user_id=?", (UPGRADES[nxt][0], nxt, uid))
             conn.commit()
             return web.json_response({"success": True})
@@ -158,7 +159,7 @@ async def api_spin(request):
 
 async def api_get_inventory(request):
     uid = (await request.json()).get('user_id')
-    conn = sqlite3.connect('gacha_game.db')
+    conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
     pets = conn.execute("SELECT * FROM user_inventory WHERE user_id = ?", (uid,)).fetchall()
     conn.close()
@@ -196,5 +197,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
