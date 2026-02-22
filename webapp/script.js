@@ -179,6 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
-}
+
 
 
