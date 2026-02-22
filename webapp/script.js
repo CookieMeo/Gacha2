@@ -40,6 +40,21 @@ async function updateUI() {
     safeSet('p-red', u.pity_red);
     safeSet('p-blu', u.pity_blue);
 
+    const upBtn = document.getElementById('upgrade-btn');
+    if (upBtn) {
+        const nextLevel = u.click_level + 1;
+        const cost = UPGRADE_COSTS[nextLevel];
+
+        if (cost !== undefined) {
+            upBtn.innerText = `Улучшить (${cost} 🍓)`;
+            upBtn.style.display = 'inline-block'; // Показываем кнопку
+        } else {
+            // Если уровня нет в списке (максимальный уровень)
+            upBtn.innerText = "Макс. уровень";
+            upBtn.disabled = true; 
+        }
+    }
+
     // Инвентарь обновляем только если мы на странице Дома
     if (document.getElementById('home').classList.contains('active')) {
         updateInventory();
@@ -179,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
