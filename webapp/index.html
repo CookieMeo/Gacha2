@@ -9,12 +9,12 @@
 </head>
 <body>
     <div id="app">
-        <!-- Страница: ДОМ -->
-        <div id="home" class="page active">
-            <h1>Мои Питомцы</h1>
-            <div id="pet-list" class="pet-grid">
-                <!-- Сюда JS добавит питомцев -->
-            </div>
+       <!-- Страница ДОМ -->
+        <div id="home" class="page">
+        <h2>Мои питомцы</h2>
+        <div id="inventory-grid">
+        <!-- Сюда будут добавляться питомцы -->
+        </div>
         </div>
 
         <!-- Страница: ГАЧА -->
@@ -76,8 +76,21 @@
         </nav>
     </div>
     <script src="script.js"></script>
+    
+    <div id="gacha-overlay" class="hidden">
+    <div id="animation-container">
+        <img id="gacha-gif" src="" alt="animation">
+    </div>
+    <div id="result-card" class="hidden">
+        <h2 id="res-rarity-text"></h2>
+        <img id="res-pet-img" src="" alt="pet">
+        <h1 id="res-pet-name"></h1>
+        <button onclick="closeGacha()">Забрать</button>
+    </div>
+</div>
 </body>
 </html>
+
 
 
 
