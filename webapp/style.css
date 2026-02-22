@@ -71,10 +71,6 @@ body {
     transition: 0.3s;
 }
 
-/* Рамки для редкостей в инвентаре */
-.pet-item.Красное { border: 2px solid red; }
-.pet-item.Синее { border: 2px solid blue; }
-
 
 /* Стили для игры */
 
@@ -108,6 +104,10 @@ body {
     height: auto;
     border-radius: 8px;
 }
+
+/* Рамки для редкостей в инвентаре */
+.pet-item.Красное { border: 2px solid red; }
+.pet-item.Синее { border: 2px solid blue; }
 
 #gacha-overlay {
     position: fixed; top:0; left:0; width:100%; height:100%;
