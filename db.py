@@ -1,5 +1,6 @@
 import sqlite3
 import random
+import os # <-- Добавь импорт os
 
 # --- СКЛАД ПЕРСОНАЖЕЙ ---
 # Здесь ты можешь вручную добавлять героев. 
@@ -10,7 +11,12 @@ PETS_DATA = [
     # Добавляй новых сюда...
 ]
 
-def init_db():
+
+def init_db(reset=False): # <-- Добавь аргумент reset=False
+    if reset and os.path.exists('gacha_game.db'):
+        os.remove('gacha_game.db') # Удаляем старую базу
+        print("Старая база данных удалена!")
+    
     conn = sqlite3.connect('gacha_game.db')
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
