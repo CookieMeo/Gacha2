@@ -107,12 +107,14 @@ async function updateInventory() {
 
 // Прочее
 function showPage(id) {
-    // 1. Переключаем страницы
+    // Скрываем все страницы
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    // Показываем нужную
     document.getElementById(id).classList.add('active');
 
-    // 2. Переключаем подсветку кнопок в футере
+    // Убираем подсветку со всех кнопок навигации
     document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active-nav'));
+    // Добавляем подсветку на нажатую (id кнопки должен быть 'home-btn', 'game-btn' и т.д.)
     const activeBtn = document.getElementById(id + '-btn');
     if (activeBtn) activeBtn.classList.add('active-nav');
 
@@ -145,4 +147,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('spin-10').onclick = () => spin(10);
     updateUI();
 });
+
 
