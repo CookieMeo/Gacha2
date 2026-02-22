@@ -64,6 +64,18 @@ body {
     transform: translateY(-5px);
 }
 
+.active-nav {
+    background: #ffe4e4 !important; /* Легкий розовый фон для активной кнопки */
+    border-radius: 10px;
+    transform: scale(1.1); /* Немного увеличим */
+    transition: 0.3s;
+}
+
+/* Рамки для редкостей в инвентаре */
+.pet-item.Красное { border: 2px solid red; }
+.pet-item.Синее { border: 2px solid blue; }
+
+
 /* Стили для игры */
 
 #gacha-overlay {
