@@ -140,6 +140,13 @@ async def api_spin(request):
         logging.error(f"Ошибка в api_spin: {e}")
         return web.json_response({"success": False, "error": str(e)}, status=500)
 
+async def api_get_inventory(request):
+    uid = (await request.json()).get('user_id')
+    conn = sqlite3.connect('gacha_game.db')
+    conn.row_factory = sqlite3.Row
+    pets = conn.execute("SELECT * FROM user_inventory WHERE user_id = ?", (uid,)).fetchall()
+    conn.close()
+    return web.json_response([dict(p) for p in pets])
 
 # --- ЗАПУСК СЕРВЕРА И БОТА ---
 async def main():
@@ -153,6 +160,7 @@ async def main():
     app.router.add_post('/api/buy', api_buy)
     app.router.add_post('/api/upgrade', api_upgrade)
     app.router.add_post('/api/spin', api_spin)
+    app.router.add_post('/api/get_inventory', api_get_inventory)
     # Подача статических файлов из папки webapp
     app.router.add_static('/', path='./webapp', show_index=True)
     
@@ -170,4 +178,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
