@@ -136,21 +136,21 @@ async function updateInventory() {
     
     grid.innerHTML = "";
     if (items.length === 0) {
-        grid.innerHTML = "<p style='grid-column: 1/3'>У вас пока нет питомцев</p>";
+        grid.innerHTML = `<p style="grid-column: 1/3; text-align: center;">У вас пока нет питомцев</p>`;
         return;
     }
     
     items.forEach(item => {
-        grid.innerHTML += 
+        // ОБРАТИ ВНИМАНИЕ: тут стоит обратная кавычка ` в начале и конце
+        grid.innerHTML += `
             <div class="pet-item">
                 <img src="${item.pet_image || 'assets/strawberry.png'}">
                 <p><b>${item.pet_name}</b></p>
                 <small>${item.pet_rarity}</small>
             </div>
-        ;
+        `;
     });
 }
-
 document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     
@@ -180,4 +180,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
 });
 }
+
 
