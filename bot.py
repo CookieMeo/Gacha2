@@ -185,6 +185,8 @@ async def main():
     
     # Статика (картинки, стили, скрипты)
     app.router.add_static('/', path='./webapp', show_index=False)
+
+    init_db(reset=False) # Обычный запуск, не сбрасываем
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -194,4 +196,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
