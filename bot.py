@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import WebAppInfo # <-- Убедись, что это импортировано
 from aiohttp import web
-from db import init_db, get_user, create_user, do_spins_logic
+from db import init_db, get_user, create_user, do_spins_logic, seed_pets # <-- seed_pets тоже должен быть импортирован
 
 # --- КОНФИГУРАЦИЯ ---
 TOKEN = "8120653173:AAE6CIrlC_BLOJn8OLRESiiawaZ8QtApvA4" # !!! ОБЯЗАТЕЛЬНО ЗАМЕНИ НА СВОЙ ТОКЕН !!!
@@ -62,6 +62,22 @@ async def add_promo(m: types.Message):
         await m.answer(f"✅ Промокод {a[0]} добавлен!")
     except Exception as e:
         await m.answer(f"Ошибка! Формат: КОД, клубника, крутки, кол-во\nОшибка: {e}")
+
+@dp.message(Command("reset_db"))
+async def reset_database(message: types.Message):
+    if message.from_user.id != ADMIN_USER_ID:
+        await message.answer("У вас нет прав для этой команды.")
+        return
+    
+    try:
+        init_db(reset=True) # Вызываем функцию сброса
+        await message.answer("✅ База данных успешно сброшена и пересоздана!")
+        # Можно также добавить:
+        conn = sqlite3.connect('gacha_game.db')
+        seed_pets(conn.cursor()) # Заново заполняем персонажами
+        conn.close()
+    except Exception as e:
+        await message.answer(f"❌ Произошла ошибка при сбросе базы данных: {e}")
 
 # --- API ЭНДПОИНТЫ ДЛЯ WEB APP ---
 
@@ -178,3 +194,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
