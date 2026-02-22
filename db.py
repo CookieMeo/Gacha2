@@ -34,6 +34,19 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Новая таблица: Инвентарь пользователей
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            pet_name TEXT,
+            pet_rarity TEXT,
+            pet_image TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 def get_user(user_id):
     conn = sqlite3.connect('gacha_game.db')
     conn.row_factory = sqlite3.Row
@@ -103,7 +116,8 @@ def do_spins_logic(user_id, count=1):
             pet = cursor.execute("SELECT name, rarity FROM pets WHERE rarity=? ORDER BY RANDOM() LIMIT 1", (res_rarity,)).fetchone()
         
         if pet:
-            results.append({"name": pet[0], "rarity": pet[1]})
+    cursor.execute("INSERT INTO user_inventory (user_id, pet_name, pet_rarity, pet_image) VALUES (?, ?, ?, ?)",
+                   (user_id, pet[0], pet[1], pet[2])) # pet[2] это image_url
         else:
             results.append({"name": "Загадочный Кот", "rarity": res_rarity})
 
