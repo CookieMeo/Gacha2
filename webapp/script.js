@@ -29,11 +29,14 @@ async function api(path, body) {
 async function updateUI() {
     const u = await api('/get_user', { user_id: uid });
     if (!u) return;
-
-    // Обновляем клубнику ВЕЗДЕ, где есть эти ID
-    if (document.getElementById('straw-count')) document.getElementById('straw-count').innerText = u.strawberry;
-    if (document.getElementById('gacha-straw')) document.getElementById('gacha-straw').innerText = u.strawberry;
-
+    document.getElementById('straw-count').innerText = u.strawberry;
+    document.getElementById('gacha-straw').innerText = u.strawberry;
+    document.getElementById('spin-count').innerText = u.spins;
+    
+    // Если мы на странице "Дом", обновляем инвентарь
+    if (document.getElementById('home').classList.contains('active')) {
+        updateInventory();
+        
     // ОБНОВЛЯЕМ КРУТКИ
     if (document.getElementById('spin-count')) document.getElementById('spin-count').innerText = u.spins;
 
@@ -103,34 +106,25 @@ async function spin(count) {
     const res = await api('/spin', { user_id: uid, count: count });
     if (!res.success) return alert(res.error);
 
-    // Берем самого редкого питомца из выпавших для выбора анимации
-    const mainPet = res.pets[0]; 
-    const gifUrl = RARITY_GIFS[mainPet.rarity] || RARITY_GIFS["default"];
-
-    // 1. Показываем оверлей и гифку
+    const mainPet = res.pets[0];
     const overlay = document.getElementById('gacha-overlay');
-    const gifImg = document.getElementById('gacha-gif');
-    const resultCard = document.getElementById('result-card');
-    const animContainer = document.getElementById('animation-container');
-
+    const gif = document.getElementById('gacha-gif');
+    
     overlay.classList.remove('hidden');
-    resultCard.classList.add('hidden');
-    animContainer.classList.remove('hidden');
-    gifImg.src = gifUrl;
+    document.getElementById('res-card').classList.add('hidden');
+    document.getElementById('anim-box').classList.remove('hidden');
+    
+    gif.src = GIFS[mainPet.rarity] || GIFS.default;
 
-    // 2. Через 3 секунды (длина гифки) показываем результат
     setTimeout(() => {
-        animContainer.classList.add('hidden');
-        resultCard.classList.remove('hidden');
-        
-        document.getElementById('res-rarity-text').innerText = mainPet.rarity;
-        document.getElementById('res-pet-img').src = mainPet.image_url || 'assets/default_pet.png';
-        document.getElementById('res-pet-name').innerText = mainPet.name;
-        
-        // Если крутили x10, можно добавить "и еще 9 питомцев..."
+        document.getElementById('anim-box').classList.add('hidden');
+        const card = document.getElementById('res-card');
+        card.classList.remove('hidden');
+        document.getElementById('res-img').src = mainPet.image_url;
+        document.getElementById('res-name').innerText = mainPet.name;
+        document.getElementById('res-rarity').innerText = mainPet.rarity;
         updateUI();
-        updateInventory(); // Обновляем инвентарь в фоне
-    }, 3000); 
+    }, 3000); // 3 секунды анимации
 }
 
 function closeGacha() {
@@ -139,20 +133,16 @@ function closeGacha() {
 
 // Обновление инвентаря на странице "ДОМ"
 async function updateInventory() {
-    const pets = await api('/get_inventory', { user_id: uid });
+    const items = await api('/get_inventory', { user_id: uid });
     const grid = document.getElementById('inventory-grid');
-    if (!grid) return;
-    
     grid.innerHTML = "";
-    pets.forEach(pet => {
-        const card = document.createElement('div');
-        card.className = `pet-card ${pet.pet_rarity}`;
-        card.innerHTML = `
-            <img src="${pet.pet_image || 'assets/default_pet.png'}">
-            <h4>${pet.pet_name}</h4>
-            <small>${pet.pet_rarity}</small>
+    items.forEach(item => {
+        grid.innerHTML += `
+            <div class="pet-item ${item.pet_rarity}">
+                <img src="${item.pet_image}">
+                <p>${item.pet_name}</p>
+            </div>
         `;
-        grid.appendChild(card);
     });
 }
 
@@ -184,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
+
 
 
 
