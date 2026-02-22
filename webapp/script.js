@@ -85,22 +85,37 @@ async function spin(count) {
 async function updateInventory() {
     const items = await api('/get_inventory', { user_id: uid });
     const grid = document.getElementById('inventory-grid');
-    if (!grid || !items) return;
-    grid.innerHTML = items.length ? "" : "<p>Тут пока пусто</p>";
+    if (!grid) return;
+    
+    grid.innerHTML = "";
+    if (!items || items.length === 0) {
+        grid.innerHTML = `<p style="grid-column: 1/3; text-align: center; color: gray;">Тут пока пусто</p>`;
+        return;
+    }
+    
     items.forEach(item => {
         grid.innerHTML += `
-            <div class="pet-item">
+            <div class="pet-item ${item.pet_rarity}">
                 <img src="${item.pet_image || 'assets/strawberry.png'}">
                 <p><b>${item.pet_name}</b></p>
                 <small>${item.pet_rarity}</small>
-            </div>`;
+                <!-- <p class="skill-text">${item.pet_skill}</p> -->
+            </div>
+        `;
     });
 }
 
 // Прочее
 function showPage(id) {
+    // 1. Переключаем страницы
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+
+    // 2. Переключаем подсветку кнопок в футере
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active-nav'));
+    const activeBtn = document.getElementById(id + '-btn');
+    if (activeBtn) activeBtn.classList.add('active-nav');
+
     updateUI();
 }
 
@@ -130,3 +145,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('spin-10').onclick = () => spin(10);
     updateUI();
 });
+
