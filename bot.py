@@ -2,7 +2,7 @@ import logging, asyncio, os, sys, sqlite3
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiohttp import web
-from db import init_db, get_user, create_user, do_gacha_spin
+from db import init_db, get_user, create_user, do_spins_logic
 
 TOKEN = "8120653173:AAGIVbVAbbENlSvDt7ZOlsuSbtNRMDt1H-A"
 ADMIN_USER_ID = 1562471251 # ТВОЙ ID
@@ -138,6 +138,7 @@ async def main():
 
 
 if __name__ == "__main__": asyncio.run(main()) 
+
 
 
 
