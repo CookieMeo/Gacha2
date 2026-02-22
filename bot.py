@@ -113,13 +113,16 @@ async def api_upgrade(request):
     return web.json_response({"success": False})
 
 async def api_spin(request):
-    data = await request.json()
-    uid = data.get('user_id')
-    count = data.get('count', 1)
-    
-    # Вызываем логику из db.py
-    result = do_spins_logic(uid, count)
-    return web.json_response(result)
+    try:
+        data = await request.json()
+        uid = data.get('user_id')
+        count = int(data.get('count', 1))
+        
+        result = do_spins_logic(uid, count)
+        return web.json_response(result)
+    except Exception as e:
+        logging.error(f"Ошибка в api_spin: {e}")
+        return web.json_response({"success": False, "error": str(e)}, status=500)
 
 async def main():
     app = web.Application()
@@ -135,6 +138,7 @@ async def main():
 
 
 if __name__ == "__main__": asyncio.run(main()) 
+
 
 
 
