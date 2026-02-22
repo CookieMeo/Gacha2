@@ -1,20 +1,26 @@
+
 const tg = window.Telegram.WebApp;
 const uid = tg.initDataUnsafe.user?.id || 12345;
 
+// --- КОНСТАНТЫ ---
 const UPGRADE_COSTS = {
     2: 10, 3: 40, 4: 90, 5: 160, 6: 250, 7: 360, 8: 490, 9: 640, 10: 810, 11: 4000
 };
 
-const RARITY_GIFS = {
-    "Красное": "assets/red.gif",
+// !!! ЗАМЕНИ НА ПРАВИЛЬНЫЕ ПУТИ К ТВОИМ ГИФКАМ !!!
+// !!! Скорее всего, они лежат в папке assets !!!
+const GIFS = {
+    "Красное": "assets/red.gif", 
     "Оранжевое": "assets/orange.gif",
-    "Желтое": "assets/yellow.gif",
+    "Жёлтое": "assets/yellow.gif",
     "Зеленое": "assets/green.gif",
     "Голубое": "assets/lightblue.gif",
     "Синее": "assets/blue.gif",
-    "default": "assets/purple.gif" // обычная гифка
+    "Фиолетовое": "assets/purple.gif", // Для обычных
+    "default": "assets/purple.gif"     // На случай ошибки
 };
 
+// --- API ЗАПРОСЫ ---
 async function api(path, body) {
     try {
         const r = await fetch('/api' + path, {
@@ -23,127 +29,55 @@ async function api(path, body) {
             body: JSON.stringify(body)
         });
         return await r.json();
-    } catch (e) { return { success: false }; }
+    } catch (e) { 
+        console.error(`Ошибка API (${path}):`, e);
+        return { success: false }; 
+    }
 }
 
+// --- ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ---
 async function updateUI() {
     const u = await api('/get_user', { user_id: uid });
-    if (!u) return;
+    if (!u) {
+        console.error("Не удалось получить данные пользователя!");
+        return;
+    }
 
-    // Обновляем текст
-    const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
+    const safeSet = (id, val) => { 
+        const el = document.getElementById(id);
+        if (el) el.innerText = val; 
+    };
     
     safeSet('straw-count', u.strawberry);
     safeSet('gacha-straw', u.strawberry);
     safeSet('spin-count', u.spins);
     safeSet('lvl-display', "Уровень " + u.click_level);
     safeSet('p-red', u.pity_red);
+    safeSet('p-ora', u.pity_orange);
+    safeSet('p-yel', u.pity_yellow);
+    safeSet('p-gre', u.pity_green);
+    safeSet('p-lbu', u.pity_lightblue);
     safeSet('p-blu', u.pity_blue);
 
+    // Обновляем кнопку улучшения
     const upBtn = document.getElementById('upgrade-btn');
     if (upBtn) {
-        const nextLevel = u.click_level + 1;
-        const cost = UPGRADE_COSTS[nextLevel];
-
+        const cost = UPGRADE_COSTS[u.click_level + 1];
         if (cost !== undefined) {
             upBtn.innerText = `Улучшить (${cost} 🍓)`;
-            upBtn.style.display = 'inline-block'; // Показываем кнопку
+            upBtn.disabled = false;
         } else {
-            // Если уровня нет в списке (максимальный уровень)
             upBtn.innerText = "Макс. уровень";
-            upBtn.disabled = true; 
+            upBtn.disabled = true;
         }
     }
 
-    // Инвентарь обновляем только если мы на странице Дома
+    // Обновляем инвентарь, если мы на странице "Дом"
     if (document.getElementById('home').classList.contains('active')) {
         updateInventory();
     }
 }
 
-async function collectStrawberry() {
-    const res = await api('/click', { user_id: uid });
-    if (res.success) {
-        updateUI();
-    }
-}
-
-async function upgradeClicker() {
-    const res = await api('/upgrade', { user_id: uid });
-    if (res.success) {
-        updateUI();
-    } else {
-        alert("Недостаточно клубники!");
-    }
-}
-
-// Покупка круток
-async function buy(count) {
-    const res = await api('/buy', { user_id: uid, count: count });
-    if (res.success) {
-        updateUI(); // Сразу обновит и клубнику, и крутки на экране
-    } else {
-        alert("Недостаточно клубники!");
-    }
-}
-
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    updateUI(); // Обновляем данные при переходе
-}
-
-// Сама гача
-async function spin(count) {
-    const res = await api('/spin', { user_id: uid, count: count });
-    if (!res.success) return alert(res.error);
-
-    const mainPet = res.pets[0];
-    const overlay = document.getElementById('gacha-overlay');
-    overlay.classList.remove('hidden');
-    document.getElementById('res-card').classList.add('hidden');
-    document.getElementById('anim-box').classList.remove('hidden');
-    
-    // Анимация 3 сек
-    setTimeout(() => {
-        document.getElementById('anim-box').classList.add('hidden');
-        document.getElementById('res-card').classList.remove('hidden');
-        document.getElementById('res-img').src = mainPet.image_url || 'assets/strawberry.png';
-        document.getElementById('res-name').innerText = mainPet.name;
-        updateUI();
-    }, 3000);
-}
-
-async function spin(count) {
-    const res = await api('/spin', { user_id: uid, count: count });
-    if (!res.success) return alert(res.error);
-
-    const mainPet = res.pets[0];
-    const overlay = document.getElementById('gacha-overlay');
-    const gif = document.getElementById('gacha-gif');
-    
-    overlay.classList.remove('hidden');
-    document.getElementById('res-card').classList.add('hidden');
-    document.getElementById('anim-box').classList.remove('hidden');
-    
-    gif.src = GIFS[mainPet.rarity] || GIFS.default;
-
-    setTimeout(() => {
-        document.getElementById('anim-box').classList.add('hidden');
-        const card = document.getElementById('res-card');
-        card.classList.remove('hidden');
-        document.getElementById('res-img').src = mainPet.image_url;
-        document.getElementById('res-name').innerText = mainPet.name;
-        document.getElementById('res-rarity').innerText = mainPet.rarity;
-        updateUI();
-    }, 3000); // 3 секунды анимации
-}
-
-function closeGacha() {
-    document.getElementById('gacha-overlay').classList.add('hidden');
-}
-
-// Обновление инвентаря на странице "ДОМ"
 async function updateInventory() {
     const items = await api('/get_inventory', { user_id: uid });
     const grid = document.getElementById('inventory-grid');
@@ -156,7 +90,6 @@ async function updateInventory() {
     }
     
     items.forEach(item => {
-        // ОБРАТИ ВНИМАНИЕ: тут стоит обратная кавычка ` в начале и конце
         grid.innerHTML += `
             <div class="pet-item">
                 <img src="${item.pet_image || 'assets/strawberry.png'}">
@@ -166,19 +99,62 @@ async function updateInventory() {
         `;
     });
 }
+
+// --- ФУНКЦИИ ДЛЯ КНОПОК ---
+
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    updateUI(); // Обновляем данные при переходе
+}
+
+async function spin(count) {
+    console.log(`Кручу гачу x${count}`);
+    const res = await api('/spin', { user_id: uid, count: count });
+    
+    if (!res.success) {
+        console.error("Ошибка гачи:", res.error);
+        return alert(res.error || "Ошибка при крутке");
+    }
+
+    const mainPet = res.pets[0]; // Берем первого питомца для анимации
+    const overlay = document.getElementById('gacha-overlay');
+    const animBox = document.getElementById('anim-box');
+    const resCard = document.getElementById('res-card');
+    
+    overlay.classList.remove('hidden');
+    resCard.classList.add('hidden');
+    animBox.classList.remove('hidden');
+    
+    const gifSrc = GIFS[mainPet.rarity] || GIFS.default;
+    console.log(`Анимация для ${mainPet.rarity}: ${gifSrc}`);
+    document.getElementById('gacha-gif').src = gifSrc;
+
+    // Показываем карточку результата через 3 секунды
+    setTimeout(() => {
+        animBox.classList.add('hidden');
+        resCard.classList.remove('hidden');
+        
+        document.getElementById('res-img').src = mainPet.image_url || 'assets/strawberry.png';
+        document.getElementById('res-name').innerText = mainPet.name;
+        document.getElementById('res-rarity').innerText = mainPet.rarity;
+        
+        updateUI(); // Обновляем счетчики (крутки, гаранты)
+    }, 3000); 
+}
+
+function closeGacha() {
+    document.getElementById('gacha-overlay').classList.add('hidden');
+}
+
+async function buy(count) {
+    const res = await api('/buy', { user_id: uid, count: count });
+    if (res.success) updateUI(); else alert("Недостаточно клубники!");
+}
+
+// --- ИНИЦИАЛИЗАЦИЯ ---
 document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
-    
-    // Привязка клика и улучшения
-    if (document.getElementById('collect-btn')) document.getElementById('collect-btn').onclick = async () => {
-        await api('/click', { user_id: uid });
-        updateUI();
-    };
-    
-    if (document.getElementById('upgrade-btn')) document.getElementById('upgrade-btn').onclick = async () => {
-        const res = await api('/upgrade', { user_id: uid });
-        if (res.success) updateUI(); else alert("Мало клубники!");
-    };
     
     // Навигация
     document.getElementById('home-btn').onclick = () => showPage('home');
@@ -186,15 +162,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('game-btn').onclick = () => showPage('game');
     document.getElementById('profile-btn').onclick = () => showPage('profile');
 
-    // Кнопки
-    if (document.getElementById('collect-btn')) document.getElementById('collect-btn').onclick = collectStrawberry;
-    if (document.getElementById('upgrade-btn')) document.getElementById('upgrade-btn').onclick = upgradeClicker;
-    if (document.getElementById('spin-1')) document.getElementById('spin-1').onclick = () => spin(1);
-    if (document.getElementById('spin-10')) document.getElementById('spin-10').onclick = () => spin(10);
+    // Кнопки игры
+    const collectBtn = document.getElementById('collect-btn');
+    if(collectBtn) collectBtn.onclick = async () => {
+        await api('/click', { user_id: uid });
+        updateUI();
+    };
+
+    const upgradeBtn = document.getElementById('upgrade-btn');
+    if(upgradeBtn) upgradeBtn.onclick = async () => {
+        const res = await api('/upgrade', { user_id: uid });
+        if (res.success) updateUI(); else alert("Мало клубники!");
+    };
+
+    // Кнопки гачи
+    if(document.getElementById('spin-1')) document.getElementById('spin-1').onclick = () => spin(1);
+    if(document.getElementById('spin-10')) document.getElementById('spin-10').onclick = () => spin(10);
 
     updateUI();
 });
-
-
-
-
