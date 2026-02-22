@@ -10,49 +10,30 @@
 <body>
     <div id="app">
        <!-- Страница ДОМ -->
-        <div id="home" class="page">
-        <h2>Мои питомцы</h2>
-        <div id="inventory-grid">
-        <!-- Сюда будут добавляться питомцы -->
-        </div>
+        <div id="home" class="page active">
+    <h2>Моя Коллекция</h2>
+    <div id="inventory-grid"></div>
         </div>
 
         <!-- Страница: ГАЧА -->
         <div id="gacha" class="page">
-            <h1>Гача</h1>
-            <div class="gacha-container">
-                <div class="pity-list">
-                    До Красного: <span id="p-red">50</span> | До Синего: <span id="p-blue">3</span>
-                </div>
-                
-                <div class="user-spins">
-                🌀 Доступно круток: <span id="spin-count">0</span>
-                </div>
-                
-                <div id="gacha-res">Жми крутить!</div>
-                <button id="spin-1">x1</button>
-                <button id="spin-10">x10</button>
-                <hr>
-                <div class="shop">
-                    <h3>Клубника: <span id="gacha-straw">0</span></h3> 
-                    <button onclick="buy(1)">+1 (100🍓)</button>
-                    <button onclick="buy(5)">+5 (500🍓)</button>
-                    <button onclick="buy(10)">+10 (1к🍓)</button>
-                    <button onclick="buy(100)">+100 (10к🍓)</button>
-                </div>
-            </div>
-        </div>
-
+    <div class="pity-info">Красный: <span id="p-red">50</span> | Синий: <span id="p-blu">3</span></div>
+    <div class="user-spins">🌀 Круток: <span id="spin-count">0</span></div>
+    <div id="gacha-res">Жми крутить!</div>
+    <button id="spin-1">x1</button>
+    <button id="spin-10">x10</button>
+    <div class="shop">
+        <h3>Клубника: <span id="gacha-straw">0</span></h3>
+        <button onclick="buy(1)">+1</button>
+        <button onclick="buy(10)">+10</button>
+    </div>
+</div>
         <!-- Страница: ИГРА (КЛИКЕР) -->
         <div id="game" class="page">
-            <h2 id="lvl-display">Уровень 1</h2>
-            <div class="clicker-container">
-                <img src="assets/strawberry.png" alt="strawberry" id="collect-btn">
-                <button id="upgrade-btn">Улучшить (10 🍓)</button>
-                <div class="stats">
-                    🍓 <span id="straw-count">0</span>
-                </div>
-            </div>
+    <h2 id="lvl-display">Уровень 1</h2>
+    <img src="assets/strawberry.png" id="collect-btn" width="180">
+    <div class="stats">🍓 <span id="straw-count">0</span></div>
+    <button id="upgrade-btn">Улучшить (10 🍓)</button>
         </div>
 
         <!-- Страница: ПРОФИЛЬ -->
@@ -77,19 +58,18 @@
     </div>
     <script src="script.js"></script>
     
-    <div id="gacha-overlay" class="hidden">
-    <div id="animation-container">
-        <img id="gacha-gif" src="" alt="animation">
-    </div>
-    <div id="result-card" class="hidden">
-        <h2 id="res-rarity-text"></h2>
-        <img id="res-pet-img" src="" alt="pet">
-        <h1 id="res-pet-name"></h1>
-        <button onclick="closeGacha()">Забрать</button>
+    <!-- Оверлей для гачи -->
+<div id="gacha-overlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div id="anim-box"><img id="gacha-gif" src="assets/roulette.gif" width="200"></div>
+    <div id="res-card" class="hidden">
+        <img id="res-img" src="" width="200" style="border-radius:20px;">
+        <h2 id="res-name"></h2>
+        <button onclick="closeGacha()" style="padding:10px 20px; margin-top:20px;">Забрать</button>
     </div>
 </div>
 </body>
 </html>
+
 
 
 
