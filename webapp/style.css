@@ -15,16 +15,18 @@ body {
 
 /* Стили страниц */
 .page {
-    display: none; /* Скрываем все страницы */
-    flex: 1;
+    display: none; /* Все страницы скрыты по умолчанию */
     padding: 20px;
     text-align: center;
-    overflow-y: auto;
-    padding-bottom: 80px; /* Место под навигацию */
+    margin-bottom: 80px;
 }
 
 .page.active {
-    display: block; /* Показываем только активную */
+    display: block; /* Показываем только ту, у которой есть класс active */
+}
+
+.hidden {
+    display: none !important;
 }
 
 /* Нижняя навигация */
@@ -77,20 +79,24 @@ body {
 /* Сетка инвентаря */
 #inventory-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr 1fr; /* По 2 в ряд */
+    gap: 15px;
     padding: 10px;
 }
+
 .pet-item {
     background: white;
-    border-radius: 10px;
-    padding: 5px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-.pet-item img { width: 100%; border-radius: 8px; }
 
-.hidden { display: none !important; }
+.pet-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
 #gacha-overlay {
     position: fixed; top:0; left:0; width:100%; height:100%;
     background: rgba(0,0,0,0.8); z-index: 9999;
