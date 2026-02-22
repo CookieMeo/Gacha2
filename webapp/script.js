@@ -29,30 +29,21 @@ async function api(path, body) {
 async function updateUI() {
     const u = await api('/get_user', { user_id: uid });
     if (!u) return;
-    document.getElementById('straw-count').innerText = u.strawberry;
-    document.getElementById('gacha-straw').innerText = u.strawberry;
-    document.getElementById('spin-count').innerText = u.spins;
+
+    // Обновляем текст
+    const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
     
-    // Если мы на странице "Дом", обновляем инвентарь
+    safeSet('straw-count', u.strawberry);
+    safeSet('gacha-straw', u.strawberry);
+    safeSet('spin-count', u.spins);
+    safeSet('lvl-display', "Уровень " + u.click_level);
+    safeSet('p-red', u.pity_red);
+    safeSet('p-blu', u.pity_blue);
+
+    // Инвентарь обновляем только если мы на странице Дома
     if (document.getElementById('home').classList.contains('active')) {
         updateInventory();
-        
-    // ОБНОВЛЯЕМ КРУТКИ
-    if (document.getElementById('spin-count')) document.getElementById('spin-count').innerText = u.spins;
-
-    // Обновляем уровень и кнопку
-    if (document.getElementById('lvl-display')) document.getElementById('lvl-display').innerText = "Уровень " + u.click_level;
-    
-    const upBtn = document.getElementById('upgrade-btn');
-    if (upBtn) {
-        const cost = UPGRADE_COSTS[u.click_level + 1];
-        if (cost) upBtn.innerText = `Улучшить (${cost} 🍓)`;
-        else upBtn.innerText = "Макс. уровень";
     }
-
-    // Обновляем гаранты в Гаче
-    if (document.getElementById('p-red')) document.getElementById('p-red').innerText = u.pity_red;
-    if (document.getElementById('p-blu')) document.getElementById('p-blu').innerText = u.pity_blue;
 }
 
 async function collectStrawberry() {
@@ -84,22 +75,28 @@ async function buy(count) {
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    updateUI(); // Обновляем данные при переходе
 }
 
 // Сама гача
 async function spin(count) {
-    console.log("Пытаюсь крутить гачу: x" + count);
     const res = await api('/spin', { user_id: uid, count: count });
+    if (!res.success) return alert(res.error);
+
+    const mainPet = res.pets[0];
+    const overlay = document.getElementById('gacha-overlay');
+    overlay.classList.remove('hidden');
+    document.getElementById('res-card').classList.add('hidden');
+    document.getElementById('anim-box').classList.remove('hidden');
     
-    if (res.success) {
-        console.log("Успех! Выпали: ", res.pets);
-        const names = res.pets.map(p => `${p.name} (${p.rarity})`).join(', ');
-        document.getElementById('gacha-res').innerText = "Выпало: " + names;
-        updateUI(); // Обновит счетчик круток на экране
-    } else {
-        console.error("Ошибка гачи:", res.error);
-        alert(res.error || "Ошибка при крутке");
-    }
+    // Анимация 3 сек
+    setTimeout(() => {
+        document.getElementById('anim-box').classList.add('hidden');
+        document.getElementById('res-card').classList.remove('hidden');
+        document.getElementById('res-img').src = mainPet.image_url || 'assets/strawberry.png';
+        document.getElementById('res-name').innerText = mainPet.name;
+        updateUI();
+    }, 3000);
 }
 
 async function spin(count) {
@@ -135,14 +132,22 @@ function closeGacha() {
 async function updateInventory() {
     const items = await api('/get_inventory', { user_id: uid });
     const grid = document.getElementById('inventory-grid');
+    if (!grid || !items) return;
+    
     grid.innerHTML = "";
+    if (items.length === 0) {
+        grid.innerHTML = "<p style='grid-column: 1/3'>У вас пока нет питомцев</p>";
+        return;
+    }
+    
     items.forEach(item => {
-        grid.innerHTML += `
-            <div class="pet-item ${item.pet_rarity}">
-                <img src="${item.pet_image}">
-                <p>${item.pet_name}</p>
+        grid.innerHTML += 
+            <div class="pet-item">
+                <img src="${item.pet_image || 'assets/strawberry.png'}">
+                <p><b>${item.pet_name}</b></p>
+                <small>${item.pet_rarity}</small>
             </div>
-        `;
+        ;
     });
 }
 
@@ -175,3 +180,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
 });
 }
+
