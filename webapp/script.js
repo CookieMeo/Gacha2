@@ -174,14 +174,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateUI();
 });
-
-
-
-
-
-
-
-
-
-
-
+}
