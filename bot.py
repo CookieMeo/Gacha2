@@ -148,36 +148,33 @@ async def api_get_inventory(request):
     conn.close()
     return web.json_response([dict(p) for p in pets])
 
+async def index(request):
+    return web.FileResponse('./webapp/index.html')
+
 # --- ЗАПУСК СЕРВЕРА И БОТА ---
 async def main():
-    # Настраиваем логирование, чтобы видеть ошибки в консоли Render
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-
-    # Настройка AIOHTTP веб-сервера
     app = web.Application()
+    
+    # Сначала API
     app.router.add_post('/api/get_user', api_get_user)
     app.router.add_post('/api/click', api_click)
     app.router.add_post('/api/buy', api_buy)
     app.router.add_post('/api/upgrade', api_upgrade)
     app.router.add_post('/api/spin', api_spin)
     app.router.add_post('/api/get_inventory', api_get_inventory)
-    # Подача статических файлов из папки webapp
-    app.router.add_static('/', path='./webapp', show_index=True)
+
+    # Главная страница (чтобы не было списка файлов)
+    app.router.add_get('/', index)
+    
+    # Статика (картинки, стили, скрипты)
+    app.router.add_static('/', path='./webapp', show_index=False)
     
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', int(os.environ.get("PORT", 10000)))
     
-    # Запускаем веб-сервер и бот-polling одновременно!
-    # asyncio.gather ждет завершения всех указанных задач.
-    # Так как обе задачи работают бесконечно, они будут работать параллельно.
-    await asyncio.gather(
-        site.start(),          # Задача для запуска веб-сервера
-        dp.start_polling(bot)  # Задача для запуска бота
-    )
+    await asyncio.gather(site.start(), dp.start_polling(bot))
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
