@@ -1,4 +1,3 @@
-
 // 1. Инициализация переменных в самом начале
 const tg = window.Telegram.WebApp;
 const user = tg.initDataUnsafe?.user;
@@ -11,14 +10,14 @@ const UPGRADE_COSTS = {
 };
 
 const GIFS = {
-    "Красное": "assets/red_gacha.gif",
-    "Оранжевое": "assets/orange_gacha.gif",
-    "Жёлтое": "assets/yellow_gacha.gif",
-    "Зелене": "assets/green_gacha.gif",
-    "Голубое": "assets/lightblue_gacha.gif",
-    "Синее": "assets/blue_gacha.gif",
-    "Фиолетовое": "assets/purple_gacha.gif",
-    "default": "assets/default_gacha.gif"
+    "Красное": "assets/red.gif",
+    "Оранжевое": "assets/orange.gif",
+    "Жёлтое": "assets/yellow.gif",
+    "Зеленое": "assets/green.gif",
+    "Голубое": "assets/lightblue.gif",
+    "Синее": "assets/blue.gif",
+    "Фиолетовое": "assets/purple.gif",
+    "default": "assets/purple.gif"
 };
 
 // 2. Функция API
@@ -182,3 +181,4 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     updateUI();
 });
+
