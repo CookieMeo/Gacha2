@@ -6,7 +6,7 @@ DB_NAME = 'gacha_v30.db' # Увеличиваем версию, чтобы га�
 PETS_DATA = [
     # Ивентовые (is_event 1 для Феникса, 2 для Единорога)
     ("Феникс", "Красное", "assets/pets/phoenix.png", 1, "Возрождение"), 
-    ("Цербер", "Красное", "assets/pets/cerberus.png", 2, "")
+    ("Цербер", "Красное", "assets/pets/cerberus.png", 2, ""),
     
     # Стандартные красные (is_event 0, для проигрыша 50/50)
     ("Единорог", "Красное", "assets/pets/unicorn.png", 0, ""),
@@ -34,7 +34,7 @@ PETS_DATA = [
     
     ("Летучая мышь", "Оранжевое", "assets/pets/bat.png", 0, ""),
     ("Акула", "Оранжевое", "assets/pets/shark.png", 0, ""),
-    ("Паук", "Красное", "assets/pets/spider.png", 0, ""),
+    ("Паук", "Красное", "assets/pets/spider.png", 0, "")
 
 ]
 
