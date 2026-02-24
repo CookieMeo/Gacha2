@@ -46,7 +46,7 @@ def init_db():
         click_level INTEGER DEFAULT 1, 
         pity_red INTEGER DEFAULT 50, pity_orange INTEGER DEFAULT 30, pity_yellow INTEGER DEFAULT 15,
         pity_green INTEGER DEFAULT 10, pity_lightblue INTEGER DEFAULT 5, pity_blue INTEGER DEFAULT 3,
-        guaranteed_event INTEGER DEFAULT 0, -- 0 = нет гаранта, 1 = гарант на ивент
+        guaranteed_event INTEGER DEFAULT 0, -- 0 = нет гаранта на ивентового, 1 = есть гарант на ивентового
         total_clicks INTEGER DEFAULT 0, 
         spent_strawberry INTEGER DEFAULT 0, 
         spent_spins INTEGER DEFAULT 0,
