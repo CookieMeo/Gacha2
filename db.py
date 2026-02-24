@@ -7,9 +7,11 @@ PETS_DATA = [
     # Ивентовые (is_event 1 для Феникса, 2 для Единорога)
     ("Феникс", "Красное", "assets/pets/phoenix.png", 1, "Возрождение"), 
     ("Цербер", "Красное", "assets/pets/cerberus.png", 2, "")
+    
     # Стандартные красные (is_event 0, для проигрыша 50/50)
     ("Единорог", "Красное", "assets/pets/unicorn.png", 0, ""),
     ("Дракон", "Красное", "assets/pets/dragon.png", 0, ""),
+    
     # Обычные редкости
     ("Собака", "Фиолетовое", "assets/pets/dog.png", 0, ""),
     ("Кошка", "Фиолетовое", "assets/pets/cat.png", 0, ""),
@@ -74,7 +76,10 @@ def init_db():
 
 def seed_pets(cursor):
     # Добавляем питомцев только если таблица пуста
-    if cursor.execute("SELECT COUNT(*) FROM pets").fetchone()[0] == 0:
+    if cursor.execute("SELECT COUNT(×) FROM pets").fetchone()[0] == 0:
+        # ВНИМАНИЕ: Проверь, что PETS_DATA не содержит синтаксических ошибок
+        # Например, у тебя было: ('"Цербер"', "Красное", "assets/pets/cerberus.png", 2, "")
+        # А должно быть: ('Цербер', "Красное", "assets/pets/cerberus.png", 2, "") - без кавычек внутри строки
         cursor.executemany("INSERT INTO pets (name, rarity, image_url, is_event, skill) VALUES (?,?,?,?,?)", PETS_DATA)
     cursor.connection.commit() # Сохраняем изменения после добавления питомцев
 
