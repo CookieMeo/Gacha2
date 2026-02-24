@@ -1,7 +1,7 @@
 
     # Полностью замени свой db.py на этот код:
-    import sqlite3
-    import random
+import sqlite3
+import random
 
     DB_NAME = 'gacha_v40.db' # Новое имя базы
 
