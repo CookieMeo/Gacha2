@@ -248,8 +248,8 @@ async def main():
         app.router.add_get('/', lambda r: web.FileResponse('./webapp/index.html'))
         app = web.Application()
         app.router.add_get('/api/user/{user_id}', get_user_data)
+        app.router.add_get('/', index)
         app.router.add_post('/api/update', update_user_data)
-        app.router.add_static('/', 'static') # Раздача фронтенда
         app.router.add_post('/api/click', api_click)
         app.router.add_post('/api/buy', api_buy)
         app.router.add_post('/api/upgrade', api_upgrade)
@@ -258,8 +258,13 @@ async def main():
         app.router.add_post('/api/claim_promo', api_claim_promo)
         app.router.add_post('/api/get_all_pets', api_get_all_pets) # <-- ЭТО ОЧЕНЬ ВАЖНО
 
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        # Используем название твоей папки - 'webapp'
+        webapp_path = os.path.join(BASE_DIR, 'webapp')
+
         # Регистрация статических файлов (CSS, JS, картинки)
         app.router.add_static('/', path='./webapp', show_index=False)
+        app.router.add_static('/webapp/', webapp_path, name='webapp') 
         
         runner = web.AppRunner(app)
         await runner.setup()
@@ -275,7 +280,10 @@ async def main():
         sys.exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    port = int(os.environ.get("PORT", 10000))
+    print(f"Server started on port {port}")
+    web.run_app(app, port=port)
+
 
 
 
