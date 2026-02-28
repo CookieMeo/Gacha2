@@ -16,7 +16,7 @@ except ImportError as e:
 
 TOKEN = "8226800067:AAH3KAaK4-VIcXh8GijTRd5sCRKQQ2MJ510" # !!! ЗАМЕНИ НА СВОЙ ТОКЕН !!!
 ADMIN_USER_ID = 1562471251 # !!! ЗАМЕНИ НА СВОЙ ID !!!
-
+app = web.Application()
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
@@ -234,8 +234,6 @@ async def main():
     try:
         init_db() # Инициализируем базу данных
         
-        app = web.Application()
-        
         # Проверяем наличие папки webapp
         if not os.path.exists('./webapp'):
             logging.critical("ОШИБКА: Папка './webapp' не найдена! Убедитесь, что она существует в корне проекта.")
@@ -246,10 +244,10 @@ async def main():
 
         # Регистрация всех маршрутов API
         app.router.add_get('/', lambda r: web.FileResponse('./webapp/index.html'))
-        app = web.Application()
-        app.router.add_get('/api/user/{user_id}', get_user_data)
+        app.router.add_get('/api/user/{user_id}', get_user_handler)
         app.router.add_get('/', index)
         app.router.add_post('/api/update', update_user_data)
+        app.router.add_post('/api/update', update_user_handler)
         app.router.add_post('/api/click', api_click)
         app.router.add_post('/api/buy', api_buy)
         app.router.add_post('/api/upgrade', api_upgrade)
@@ -283,6 +281,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     print(f"Server started on port {port}")
     web.run_app(app, port=port)
+
 
 
 
