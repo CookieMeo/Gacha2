@@ -102,6 +102,14 @@ def create_user(user_id, username):
     conn.commit()
     conn.close()
 
+def update_stats(user_id, clicks, level):
+    """Обновляет клики и уровень"""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE users SET clicks = ?, level = ? WHERE user_id = ?', (clicks, level, user_id))
+    conn.commit()
+    conn.close()
+
 def do_spins_logic(user_id, count=1, banner_id=1):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
