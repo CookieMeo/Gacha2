@@ -3,6 +3,8 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import WebAppInfo
 from aiohttp import web
+import json
+import database as db # Предполагаем, что там функции работы с БД
 
 # Пытаемся импортировать базу данных. Если db.py содержит синтаксическую ошибку,
 # это вызовет ImportError и выведет сообщение.
@@ -35,20 +37,25 @@ UPGRADE_COSTS = {
 
 # --- API ЭНДПОИНТЫ ---
 
-async def api_get_user(request):
-    try:
-        data = await request.json()
-        uid = data.get('user_id')
-        u = get_user(uid)
-        # Если пользователя нет, создаем и получаем его данные
-        if not u:
-            username = "Игрок" # В WebApp нельзя получить username, так что ставим дефолт
-            create_user(uid, username)
-            u = get_user(uid)
-        return web.json_response(u)
-    except Exception as e:
-        logging.error(f"API ERROR in /get_user: {e}", exc_info=True)
-        return web.json_response({"error": "Серверная ошибка"}, status=500)
+async def get_user_data(request):
+    user_id = int(request.match_info['user_id'])
+    user = db.get_user(user_id)
+    
+    if not user:
+        # Если пользователя нет, создаем его с дефолтными статами
+        db.create_user(user_id)
+        user = db.get_user(user_id)
+        
+    return web.json_response(user)
+
+async def update_user_data(request):
+    data = await request.json()
+    user_id = data.get('user_id')
+    clicks = data.get('clicks')
+    level = data.get('level')
+    
+    db.update_stats(user_id, clicks, level)
+    return web.json_response({"status": "ok"})
 
 async def api_click(request):
     try:
@@ -239,7 +246,10 @@ async def main():
 
         # Регистрация всех маршрутов API
         app.router.add_get('/', lambda r: web.FileResponse('./webapp/index.html'))
-        app.router.add_post('/api/get_user', api_get_user)
+        app = web.Application()
+        app.router.add_get('/api/user/{user_id}', get_user_data)
+        app.router.add_post('/api/update', update_user_data)
+        app.router.add_static('/', 'static') # Раздача фронтенда
         app.router.add_post('/api/click', api_click)
         app.router.add_post('/api/buy', api_buy)
         app.router.add_post('/api/upgrade', api_upgrade)
@@ -266,4 +276,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
