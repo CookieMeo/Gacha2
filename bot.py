@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import WebAppInfo
 from aiohttp import web
 import json
-import database as db # Предполагаем, что там функции работы с БД
+import db # Предполагаем, что там функции работы с БД
 
 # Пытаемся импортировать базу данных. Если db.py содержит синтаксическую ошибку,
 # это вызовет ImportError и выведет сообщение.
@@ -276,5 +276,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
