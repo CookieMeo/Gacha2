@@ -1,7 +1,6 @@
 // 1. Инициализация переменных в самом начале
 const tg = window.Telegram.WebApp;
-const user = tg.initDataUnsafe?.user;
-const uid = user?.id || 12345;
+const USER_ID = tg.initDataUnsafe?.user?.id || 12345;
 let currentBanner = 1; 
 
 const UPGRADE_COSTS = {
@@ -20,165 +19,137 @@ const GIFS = {
     "default": "assets/purple.gif"
 };
 
-// 2. Функция API
-async function api(path, data) {
+// Глобальный объект данных (синхронизируется с БД)
+let userData = {
+    clicks: 0,
+    level: 1,
+    upgrade_cost: 10
+};
+
+// --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК (Твоя существующая) ---
+function showTab(tabId) {
+    // Скрываем все секции
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+    // Показываем нужную
+    const activeTab = document.getElementById(tabId);
+    if (activeTab) {
+        activeTab.style.display = 'block';
+    }
+
+    // Если открыли профиль — обновляем данные там еще раз на всякий случай
+    if (tabId === 'profile') {
+        updateProfileUI();
+    }
+}
+
+// --- РАБОТА С СЕРВЕРОМ (НОВАЯ ЛОГИКА) ---
+
+// 1. Загрузка данных при старте
+async function fetchUserData() {
+    console.log("Запрос данных для пользователя:", USER_ID);
+    const loadingScreen = document.getElementById('loading-screen');
+
     try {
-        const res = await fetch('/api' + path, {
+        // Запрос к твоему API в bot.py
+        const response = await fetch(`/api/user/${USER_ID}`);
+        if (!response.ok) throw new Error('Пользователь не найден или ошибка сервера');
+        
+        const data = await response.json();
+        
+        // Обновляем локальные данные данными из БД
+        userData.clicks = data.clicks;
+        userData.level = data.level;
+        userData.upgrade_cost = data.upgrade_cost || (data.level * 10); // если нет в БД, считаем сами
+
+        console.log("Данные успешно загружены из БД:", userData);
+    } catch (error) {
+        console.error("Ошибка при загрузке данных:", error);
+        // Если ошибка (например, сервер еще не проснулся), оставляем дефолтные 0
+    } finally {
+        // В ЛЮБОМ СЛУЧАЕ убираем экран загрузки через секунду
+        if (loadingScreen) {
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                updateUI();
+            }, 500);
+        }
+    }
+}
+
+// 2. Сохранение данных на сервер (автосохранение)
+async function saveToServer() {
+    try {
+        await fetch('/api/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                user_id: USER_ID,
+                clicks: userData.clicks,
+                level: userData.level
+            })
         });
-        return await res.json();
     } catch (e) {
-        console.error("API Error:", e);
-        return { success: false, error: "Ошибка сети" };
+        console.warn("Не удалось сохранить данные на сервер (возможно, оффлайн)");
     }
 }
 
-// 3. Обновление интерфейса
-async function updateUI() {
-    const u = await api('/get_user', { user_id: uid });
-    if (!u || u.error) return;
+// --- ЛОГИКА ИГРЫ (Клик и Улучшение) ---
 
-    // Обновляем все текстовые поля
-    document.querySelectorAll('.val-strawberry').forEach(el => el.innerText = u.strawberry);
-    document.querySelectorAll('.val-spins').forEach(el => el.innerText = u.spins);
-    document.querySelectorAll('.val-level').forEach(el => el.innerText = u.click_level);
+function updateUI() {
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const upgradeBtn = document.getElementById('upgrade-btn');
+
+    if (scoreEl) scoreEl.innerText = `Клубника: ${userData.clicks}`;
+    if (levelEl) levelEl.innerText = `Уровень ${userData.level}`;
+    if (upgradeBtn) upgradeBtn.innerText = `Улучшить (${userData.upgrade_cost})`;
     
-    const upBtn = document.getElementById('upgrade-btn');
-    if (upBtn) {
-        const nextCost = u.click_level >= 11 ? "МАКС" : UPGRADE_COSTS[u.click_level + 1][0];
-        upBtn.innerText = `Улучшить (${nextCost})`;
-    }
+    updateProfileUI();
+}
 
-    // Профиль
-    document.getElementById('profile-username').innerText = user?.first_name || u.username || "Игрок";
-    if (user?.photo_url) document.getElementById('profile-avatar').src = user.photo_url;
-
-    // Статистика
-    const totalRed = (u.red_wins || 0) + (u.red_losses || 0);
-    const wr = totalRed > 0 ? ((u.red_wins / totalRed) * 100).toFixed(1) : 0;
-    document.getElementById('stat-winrate').innerText = wr + "%";
+function updateProfileUI() {
+    const profId = document.getElementById('prof-id');
+    const profClicks = document.getElementById('prof-clicks');
     
-    const avg = u.red_count > 0 ? (u.total_pulls_for_avg_red / u.red_count).toFixed(1) : 0;
-    document.getElementById('stat-avg-red').innerText = avg;
-    
-    document.getElementById('stat-spent-straw').innerText = u.spent_strawberry || 0;
-    document.getElementById('stat-spent-spins').innerText = u.spent_spins || 0;
-
-    // Если мы на вкладке "Дом", обновляем инвентарь
-    if (document.getElementById('home-view').classList.contains('active')) {
-        renderInventory();
-    }
+    if (profId) profId.innerText = `ID: ${USER_ID}`;
+    if (profClicks) profClicks.innerText = `Всего собрано: ${userData.clicks}`;
 }
 
-// 4. Логика вкладок
-async function renderInventory() {
-    const items = await api('/get_inventory', { user_id: uid });
-    const container = document.getElementById('inventory-list');
-    if (!container) return;
-    container.innerHTML = "";
-    if (items.length === 0) {
-        container.innerHTML = "<p>У вас пока нет питомцев</p>";
-        return;
-    }
-    items.forEach(item => {
-        container.innerHTML += `
-            <div class="pet-card">
-                <img src="${item.pet_image}">
-                <p><b>${item.pet_name}</b></p>
-                <small>${item.pet_rarity}</small>
-            </div>
-        `;
-    });
-}
-
-// 5. Действия
-async function clickStrawberry() {
-    const res = await api('/click', { user_id: uid });
-    if (res.success) updateUI();
-}
-
-async function upgradeClicker() {
-    const res = await api('/upgrade', { user_id: uid });
-    if (res.success) updateUI();
-    else alert(res.error);
-}
-
-function setBanner(id) {
-    currentBanner = id;
-    document.querySelectorAll('.banner-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('banner-'+id).classList.add('active');
-}
-
-async function buySpins(count) {
-    const res = await api('/buy', { user_id: uid, count: count });
-    if (res.success) updateUI();
-    else alert(res.error);
-}
-
-async function spin(count) {
-    const res = await api('/spin', { user_id: uid, count: count, banner_id: currentBanner });
-    if (!res.success) return alert(res.error);
-
-    const mainPet = res.pets[0];
-    const overlay = document.getElementById('gacha-overlay');
-    overlay.classList.remove('hidden');
-    document.getElementById('res-card').classList.add('hidden');
-    document.getElementById('anim-box').classList.remove('hidden');
-    document.getElementById('gacha-gif').src = GIFS[mainPet.rarity] || GIFS.default;
-
-    setTimeout(() => {
-        document.getElementById('anim-box').classList.add('hidden');
-        document.getElementById('res-card').classList.remove('hidden');
-        document.getElementById('res-img').src = mainPet.image_url;
-        document.getElementById('res-name').innerText = mainPet.name;
-        document.getElementById('res-rarity').innerText = mainPet.rarity;
+// Клик по клубнике
+const strawberryImg = document.getElementById('strawberry');
+if (strawberryImg) {
+    strawberryImg.addEventListener('click', () => {
+        userData.clicks += 1; // Можно умножать на уровень: + (1 * userData.level)
         updateUI();
-    }, 4000); 
-}
-
-async function claimPromo() {
-    const code = document.getElementById('promo-input').value;
-    const res = await api('/claim_promo', { user_id: uid, code: code });
-    alert(res.msg || res.error);
-    updateUI();
-}
-
-async function openCollection() {
-    const allPets = await api('/get_all_pets', {});
-    const myItems = await api('/get_inventory', { user_id: uid });
-    const myNames = myItems.map(i => i.pet_name);
-    
-    const grid = document.getElementById('collection-grid');
-    grid.innerHTML = "";
-    allPets.forEach(p => {
-        const isHave = myNames.includes(p.name);
-        grid.innerHTML += `
-            <div class="coll-item ${isHave ? '' : 'gray'}">
-                <img src="${p.image_url}">
-                <p>${p.name}</p>
-            </div>
-        `;
+        saveToServer(); // Отправляем в БД
     });
-    document.getElementById('collection-overlay').classList.remove('hidden');
 }
 
-// Переключение видов
-function showView(viewId) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
-    
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    // Находим кнопку по тексту или ID
-    event.currentTarget.classList.add('active');
-    
-    updateUI();
+// Кнопка улучшения
+const upgradeBtn = document.getElementById('upgrade-btn');
+if (upgradeBtn) {
+    upgradeBtn.addEventListener('click', () => {
+        if (userData.clicks >= userData.upgrade_cost) {
+            userData.clicks -= userData.upgrade_cost;
+            userData.level += 1;
+            userData.upgrade_cost = userData.level * 10;
+            updateUI();
+            saveToServer();
+            alert("Уровень повышен!");
+        } else {
+            alert("Недостаточно клубники!");
+        }
+    });
 }
 
-// Старт
-document.addEventListener('DOMContentLoaded', () => {
-    tg.expand();
-    updateUI();
-});
+// --- ИНИЦИАЛИЗАЦИЯ ---
 
+window.onload = () => {
+    // 1. Сразу показываем главную вкладку
+    showTab('home');
+    
+    // 2. Идем в базу за данными этого юзера
+    fetchUserData();
+};
