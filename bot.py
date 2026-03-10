@@ -187,6 +187,11 @@ async def api_get_all_pets(request):
         logging.error(f"API ERROR in /get_all_pets: {e}", exc_info=True)
         return web.json_response([], status=500)
 
+async def handle_index(request):
+    # Указываем путь к индексу внутри папки webapp
+    return web.FileResponse('webapp/index.html')
+
+
 
 # --- КОМАНДЫ БОТА ---
 
@@ -244,6 +249,8 @@ async def main():
 
         # Регистрация всех маршрутов API
         app.router.add_get('/', lambda r: web.FileResponse('./webapp/index.html'))
+        app.router.add_get('/', handle_index)
+        app.router.add_static('/', path='webapp', name='static')
         app.router.add_get('/api/user/{user_id}', get_user_handler)
         app.router.add_get('/', index)
         app.router.add_post('/api/update', update_user_data)
@@ -281,6 +288,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     print(f"Server started on port {port}")
     web.run_app(app, port=port)
+
 
 
 
