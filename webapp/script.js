@@ -43,6 +43,18 @@ function showTab(tabId) {
         updateProfileUI();
     }
 }
+const gachaAnimation = document.getElementById('gacha-animation'); 
+
+function playAnimation() {
+    // ВАЖНО: Проверь, что файл называется именно так: spin.gif (маленькими буквами)
+    gachaAnimation.src = 'assets/spin.gif'; 
+    gachaAnimation.style.display = 'block';
+
+    setTimeout(() => {
+        gachaAnimation.style.display = 'none';
+        // Дальше идет твоя логика показа выпавшего животного
+    }, 3000); // 3 секунды на анимацию
+}
 
 // --- РАБОТА С СЕРВЕРОМ (НОВАЯ ЛОГИКА) ---
 
@@ -153,3 +165,4 @@ window.onload = () => {
     // 2. Идем в базу за данными этого юзера
     fetchUserData();
 };
+
