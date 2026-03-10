@@ -37,6 +37,25 @@ UPGRADE_COSTS = {
 
 # --- API ЭНДПОИНТЫ ---
 
+async def handle_index(request):
+    # Путь к файлу внутри папки webapp
+    index_path = os.path.join(os.getcwd(), 'webapp', 'index.html')
+    if os.path.exists(index_path):
+        return web.FileResponse(index_path)
+    return web.Response(text="Файл index.html не найден в папке webapp", status=404)
+
+async def start_web_app():
+    app = web.Application()
+    
+    # 1. Сначала прописываем корень сайта
+    app.router.add_get('/', handle_index)
+    
+    # 2. Потом подключаем всю папку webapp для статики (css, js, картинки)
+    # Это позволит браузеру видеть файлы типа /style.css, забирая их из /webapp/style.css
+    app.router.add_static('/', path=os.path.join(os.getcwd(), 'webapp'), name='static')
+    
+    return app
+
 async def get_user_data(request):
     user_id = int(request.match_info['user_id'])
     user = db.get_user(user_id)
@@ -288,6 +307,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     print(f"Server started on port {port}")
     web.run_app(app, port=port)
+
 
 
 
