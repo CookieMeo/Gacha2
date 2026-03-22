@@ -162,20 +162,16 @@ async function spin(count) {
     // 4. Ждем 3 секунды (3000 мс)
     setTimeout(() => {
         flash.classList.remove('active'); // Убираем заливку
-        
-        // Показываем результат (вызываем твою функцию отрисовки питомцев)
-        showResultUI(droppedPets); 
-        
-    }, 3000);
-
-    setTimeout(() => {
         document.getElementById('anim-box').classList.add('hidden');
         document.getElementById('res-card').classList.remove('hidden');
         document.getElementById('res-img').src = mainPet.image_url;
         document.getElementById('res-name').innerText = mainPet.name;
         document.getElementById('res-rarity').innerText = mainPet.rarity;
-        updateUI();
-    }, 5000); 
+        
+        // Показываем результат (вызываем твою функцию отрисовки питомцев)
+        showResultUI(droppedPets); 
+    }, 3000);
+
 }
 
 function closeGacha() {
