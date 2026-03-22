@@ -1,13 +1,15 @@
-// 1. Инициализация переменных в самом начале
 const tg = window.Telegram.WebApp;
-const USER_ID = tg.initDataUnsafe?.user?.id || 12345;
-let currentBanner = 1; 
+const uid = tg.initDataUnsafe.user?.id || 12345;
 
+// --- КОНСТАНТЫ ---
 const UPGRADE_COSTS = {
-    1: [0, 1], 2: [10, 2], 3: [40, 3], 4: [90, 4], 5: [160, 5], 
-    6: [250, 6], 7: [360, 7], 8: [490, 8], 9: [640, 9], 10: [810, 10], 11: [4000, 100]
+    2: [10, 2], 3: [40, 3], 4: [90, 4], 5: [160, 5], 6: [250, 6], 
+    7: [360, 7], 8: [490, 8], 9: [640, 9], 10: [810, 10], 11: [4000, 100]
 };
 
+const BUY_SPINS_COST = { 1: 100, 5: 500, 10: 1000, 50: 5000, 100: 10000 };
+
+// !!! ЗАМЕНИ НА ПРАВИЛЬНЫЕ ПУТИ К ТВОИМ ГИФКАМ !!!
 const GIFS = {
     "Красное": "assets/red.gif",
     "Оранжевое": "assets/orange.gif",
@@ -19,150 +21,201 @@ const GIFS = {
     "default": "assets/purple.gif"
 };
 
-// Глобальный объект данных (синхронизируется с БД)
-let userData = {
-    clicks: 0,
-    level: 1,
-    upgrade_cost: 10
-};
-
-// --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК (Твоя существующая) ---
-function showTab(tabId) {
-    // Скрываем все секции
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.style.display = 'none';
-    });
-    // Показываем нужную
-    const activeTab = document.getElementById(tabId);
-    if (activeTab) {
-        activeTab.style.display = 'block';
-    }
-
-    // Если открыли профиль — обновляем данные там еще раз на всякий случай
-    if (tabId === 'profile') {
-        updateProfileUI();
+// --- API ЗАПРОСЫ ---
+async function api(path, body) {
+    try {
+        const r = await fetch('/api' + path, {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        return await r.json();
+    } catch (e) { 
+        console.error(`Ошибка API (${path}):`, e);
+        return { success: false }; 
     }
 }
-const gachaAnimation = document.getElementById('gacha-animation'); 
 
-function playAnimation() {
-    // ВАЖНО: Проверь, что файл называется именно так: spin.gif (маленькими буквами)
-    gachaAnimation.src = 'assets/spin.gif'; 
-    gachaAnimation.style.display = 'block';
+// --- ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ---
+async function updateUI() {
+    const u = await api('/get_user', { user_id: uid });
+    if (!u) return;
+
+    // Обновляем ТЕКСТОВЫЕ значения
+    const setT = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
+    
+    setT('straw-count', u.strawberry);
+    setT('gacha-straw', u.strawberry);
+    setT('spin-count', u.spins);
+    setT('lvl-display', "Уровень " + u.click_level);
+    
+    // Обновляем гаранты
+    setT('p-red', u.pity_red);
+    setT('p-orange', u.pity_orange); // <-- Добавил остальные гаранты
+    setT('p-yellow', u.pity_yellow);
+    setT('p-green', u.pity_green);
+    setT('p-lightblue', u.pity_lightblue);
+    setT('p-blue', u.pity_blue);
+
+    // Кнопка улучшения
+    const upBtn = document.getElementById('upgrade-btn');
+    if (upBtn) {
+        const cost = UPGRADE_COSTS[u.click_level + 1]?.[0]; // Получаем цену
+        if (cost !== undefined) {
+            upBtn.innerText = `Улучшить (${cost} 🍓)`;
+            upBtn.disabled = false;
+        } else {
+            upBtn.innerText = "Макс. уровень";
+            upBtn.disabled = true;
+        }
+    }
+    
+    // Обновляем ВСЮ статистику
+    const setStats = (id, val) => {
+        if(document.getElementById(id)) document.getElementById(id).innerText = val;
+    };
+    setStats('stat-pets-obtained', u.total_pets_obtained);
+    setStats('stat-clicks', u.total_clicks);
+    setStats('stat-spent', u.total_spent);
+    setStats('stat-spins-bought', u.total_spins_bought);
+    setStats('stat-gacha-pulls', u.total_gacha_pulls);
+    // winrate пока 0
+    setStats('stat-winrate-gacha', (u.total_pets_obtained / u.total_gacha_pulls * 100).toFixed(1) + "%");
+    setStats('stat-winrate-battle', "0.0%");
+
+    // Если открыта страница "Дом", обновляем инвентарь
+    if (document.getElementById('home').classList.contains('active')) {
+        updateInventory();
+    }
+}
+
+// --- ОБНОВЛЕНИЕ ИНВЕНТАРЯ ---
+async function updateInventory() {
+    const items = await api('/get_inventory', { user_id: uid });
+    const grid = document.getElementById('inventory-grid');
+    if (!grid) return; // Если сетки нет, выходим
+
+    grid.innerHTML = ""; // Очищаем сетку
+
+    // Проверяем, что items - это действительно массив и он не пустой
+    if (Array.isArray(items) && items.length > 0) {
+        items.forEach(item => {
+            grid.innerHTML += `
+                <div class="pet-item ${item.pet_rarity}">
+                    <img src="${item.pet_image || 'assets/strawberry.png'}">
+                    <p><b>${item.pet_name}</b></p>
+                    <small>${item.pet_rarity}</small>
+                    <!-- <p class="skill-text">${item.pet_skill}</p> -->
+                </div>
+            `;
+        });
+    } else {
+        // Если инвентарь пуст или вернулся не массив
+        grid.innerHTML = `<p style="grid-column: 1/3; text-align: center; color: gray;">Тут пока пусто</p>`;
+    }
+}
+
+// --- ПЕРЕКЛЮЧЕНИЕ СТРАНИЦ И НАВИГАЦИЯ ---
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active-nav'));
+    const activeBtn = document.getElementById(id + '-btn');
+    if (activeBtn) activeBtn.classList.add('active-nav');
+
+    updateUI(); // Обновляем данные при смене страницы
+}
+
+// --- ГАЧА: КРУТКИ И АНИМАЦИЯ ---
+async function spin(count) {
+    const res = await api('/spin', { user_id: uid, count: count });
+    
+    if (!res.success) {
+        console.log("Ошибка сервера:", res); // Поможет отладить
+        return alert(res.error || "Ошибка при крутке");
+    }
+
+    const mainPet = res.pets[0]; // Теперь тут точно есть данные
+    
+    // Показываем оверлей
+    const overlay = document.getElementById('gacha-overlay');
+    overlay.classList.remove('hidden');
+    document.getElementById('res-card').classList.add('hidden');
+    document.getElementById('anim-box').classList.remove('hidden');
+    
+    // Ставим гифку редкости
+    document.getElementById('gacha-gif').src = GIFS[mainPet.rarity] || GIFS.default;
 
     setTimeout(() => {
-        gachaAnimation.style.display = 'none';
-        // Дальше идет твоя логика показа выпавшего животного
-    }, 3000); // 3 секунды на анимацию
-}
-
-// --- РАБОТА С СЕРВЕРОМ (НОВАЯ ЛОГИКА) ---
-
-// 1. Загрузка данных при старте
-async function fetchUserData() {
-    console.log("Запрос данных для пользователя:", USER_ID);
-    const loadingScreen = document.getElementById('loading-screen');
-
-    try {
-        // Запрос к твоему API в bot.py
-        const response = await fetch(`/api/user/${USER_ID}`);
-        if (!response.ok) throw new Error('Пользователь не найден или ошибка сервера');
-        
-        const data = await response.json();
-        
-        // Обновляем локальные данные данными из БД
-        userData.clicks = data.clicks;
-        userData.level = data.level;
-        userData.upgrade_cost = data.upgrade_cost || (data.level * 10); // если нет в БД, считаем сами
-
-        console.log("Данные успешно загружены из БД:", userData);
-    } catch (error) {
-        console.error("Ошибка при загрузке данных:", error);
-        // Если ошибка (например, сервер еще не проснулся), оставляем дефолтные 0
-    } finally {
-        // В ЛЮБОМ СЛУЧАЕ убираем экран загрузки через секунду
-        if (loadingScreen) {
-            setTimeout(() => {
-                loadingScreen.style.display = 'none';
-                updateUI();
-            }, 500);
-        }
-    }
-}
-
-// 2. Сохранение данных на сервер (автосохранение)
-async function saveToServer() {
-    try {
-        await fetch('/api/update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: USER_ID,
-                clicks: userData.clicks,
-                level: userData.level
-            })
-        });
-    } catch (e) {
-        console.warn("Не удалось сохранить данные на сервер (возможно, оффлайн)");
-    }
-}
-
-// --- ЛОГИКА ИГРЫ (Клик и Улучшение) ---
-
-function updateUI() {
-    const scoreEl = document.getElementById('score');
-    const levelEl = document.getElementById('level');
-    const upgradeBtn = document.getElementById('upgrade-btn');
-
-    if (scoreEl) scoreEl.innerText = `Клубника: ${userData.clicks}`;
-    if (levelEl) levelEl.innerText = `Уровень ${userData.level}`;
-    if (upgradeBtn) upgradeBtn.innerText = `Улучшить (${userData.upgrade_cost})`;
-    
-    updateProfileUI();
-}
-
-function updateProfileUI() {
-    const profId = document.getElementById('prof-id');
-    const profClicks = document.getElementById('prof-clicks');
-    
-    if (profId) profId.innerText = `ID: ${USER_ID}`;
-    if (profClicks) profClicks.innerText = `Всего собрано: ${userData.clicks}`;
-}
-
-// Клик по клубнике
-const strawberryImg = document.getElementById('strawberry');
-if (strawberryImg) {
-    strawberryImg.addEventListener('click', () => {
-        userData.clicks += 1; // Можно умножать на уровень: + (1 * userData.level)
+        document.getElementById('anim-box').classList.add('hidden');
+        document.getElementById('res-card').classList.remove('hidden');
+        document.getElementById('res-img').src = mainPet.image_url;
+        document.getElementById('res-name').innerText = mainPet.name;
+        document.getElementById('res-rarity').innerText = mainPet.rarity;
         updateUI();
-        saveToServer(); // Отправляем в БД
-    });
+    }, 5000); 
 }
 
-// Кнопка улучшения
-const upgradeBtn = document.getElementById('upgrade-btn');
-if (upgradeBtn) {
-    upgradeBtn.addEventListener('click', () => {
-        if (userData.clicks >= userData.upgrade_cost) {
-            userData.clicks -= userData.upgrade_cost;
-            userData.level += 1;
-            userData.upgrade_cost = userData.level * 10;
-            updateUI();
-            saveToServer();
-            alert("Уровень повышен!");
-        } else {
-            alert("Недостаточно клубники!");
-        }
-    });
+function closeGacha() {
+    document.getElementById('gacha-overlay').classList.add('hidden');
+}
+
+// --- ПОКУПКА КРУТОК ---
+async function buy(count) {
+    const cost = BUY_SPINS_COST[count];
+    if (!cost) return alert("Неверное количество");
+    
+    const res = await api('/buy', { user_id: uid, count: count });
+    if (res.success) {
+        updateUI(); // Обновляем отображение клубники и круток
+    } else {
+        alert("Недостаточно клубники!");
+    }
+}
+
+// --- УЛУЧШЕНИЕ КЛИКЕРА ---
+async function upgradeClicker() {
+    const res = await api('/upgrade', { user_id: uid });
+    if (res.success) {
+        updateUI();
+    } else {
+        // Если res.success == false, значит была ошибка на сервере
+        alert(res.error || "Мало клубники или достигнут макс. уровень!");
+    }
 }
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
-
-window.onload = () => {
-    // 1. Сразу показываем главную вкладку
-    showTab('home');
+document.addEventListener('DOMContentLoaded', () => {
+    tg.expand();
     
-    // 2. Идем в базу за данными этого юзера
-    fetchUserData();
-};
+    // Навигация
+    document.getElementById('home-btn').onclick = () => showPage('home');
+    document.getElementById('gacha-btn').onclick = () => showPage('gacha');
+    document.getElementById('game-btn').onclick = () => showPage('game');
+    document.getElementById('profile-btn').onclick = () => showPage('profile');
 
+    // Кнопки игры
+    const collectBtn = document.getElementById('collect-btn');
+    if(collectBtn) collectBtn.onclick = async () => {
+        await api('/click', { user_id: uid });
+        updateUI();
+    };
+
+    const upgradeBtn = document.getElementById('upgrade-btn');
+    if(upgradeBtn) upgradeBtn.onclick = upgradeClicker;
+
+    // Кнопки гачи
+    if(document.getElementById('spin-1')) document.getElementById('spin-1').onclick = () => spin(1);
+    if(document.getElementById('spin-10')) document.getElementById('spin-10').onclick = () => spin(10);
+
+    // Кнопки покупки круток
+    document.querySelectorAll('.shop button').forEach(btn => {
+        const count = parseInt(btn.innerText.split('(')[0].replace('+','').trim());
+        if (!isNaN(count)) {
+            btn.onclick = () => buy(count);
+        }
+    });
+
+    updateUI(); // Первоначальное обновление интерфейса
+});
