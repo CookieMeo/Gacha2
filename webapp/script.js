@@ -1,5 +1,8 @@
-const tg = window.Telegram.WebApp;
-const uid = tg.initDataUnsafe.user?.id || 12345;
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) {
+    tg.expand();
+}
+const uid = tg?.initDataUnsafe?.user?.id || 12345;
 
 // --- КОНСТАНТЫ ---
 const UPGRADE_COSTS = {
