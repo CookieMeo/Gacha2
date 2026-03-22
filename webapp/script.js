@@ -10,16 +10,17 @@ const UPGRADE_COSTS = {
 const BUY_SPINS_COST = { 1: 100, 5: 500, 10: 1000, 50: 5000, 100: 10000 };
 
 // !!! ЗАМЕНИ НА ПРАВИЛЬНЫЕ ПУТИ К ТВОИМ ГИФКАМ !!!
-const GIFS = {
-    "Красное": "assets/red.gif",
-    "Оранжевое": "assets/orange.gif",
-    "Жёлтое": "assets/yellow.gif",
-    "Зеленое": "assets/green.gif",
-    "Голубое": "assets/lightblue.gif",
-    "Синее": "assets/blue.gif",
-    "Фиолетовое": "assets/purple.gif",
-    "default": "assets/purple.gif"
+const rarityColors = {
+    'Фиолетовое': '#A020F0', // Purple
+    'Синее': '#0000FF',      // Blue
+    'Голубое': '#00BFFF',    // DeepSkyBlue
+    'Зелёное': '#00FF00',    // Lime
+    'Жёлтое': '#FFFF00',     // Yellow
+    'Оранжевое': '#FFA500',  // Orange
+    'Красное': '#FF0000'     // Red
 };
+
+const rarityOrder = ['Фиолетовое', 'Синее', 'Голубое', 'Зелёное', 'Жёлтое', 'Оранжевое', 'Красное'];
 
 // --- API ЗАПРОСЫ ---
 async function api(path, body) {
@@ -137,6 +138,7 @@ async function spin(count) {
     }
 
     const mainPet = res.pets[0]; // Теперь тут точно есть данные
+    let droppedPets = performLogic(); // твоя функция получения питомцев
     
     // Показываем оверлей
     const overlay = document.getElementById('gacha-overlay');
@@ -144,8 +146,27 @@ async function spin(count) {
     document.getElementById('res-card').classList.add('hidden');
     document.getElementById('anim-box').classList.remove('hidden');
     
-    // Ставим гифку редкости
-    document.getElementById('gacha-gif').src = GIFS[mainPet.rarity] || GIFS.default;
+    let maxRarity = 'Фиолетовое';
+    droppedPets.forEach(pet => {
+        if (rarityOrder.indexOf(pet.rarity) > rarityOrder.indexOf(maxRarity)) {
+            maxRarity = pet.rarity;
+        }
+    });
+    const flash = document.getElementById('flash-screen');
+    flash.style.backgroundColor = rarityColors[maxRarity]; // Устанавливаем цвет
+    flash.classList.add('active'); // Показываем экран
+
+    // Скрываем интерфейс получения (если нужно)
+    // document.getElementById('result-container').style.display = 'none';
+
+    // 4. Ждем 3 секунды (3000 мс)
+    setTimeout(() => {
+        flash.classList.remove('active'); // Убираем заливку
+        
+        // Показываем результат (вызываем твою функцию отрисовки питомцев)
+        showResultUI(droppedPets); 
+        
+    }, 3000);
 
     setTimeout(() => {
         document.getElementById('anim-box').classList.add('hidden');
