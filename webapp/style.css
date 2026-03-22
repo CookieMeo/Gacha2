@@ -99,6 +99,23 @@ nav button i { /* Если захочешь добавить иконки */
     background: rgba(0,0,0,0.9); z-index: 9999;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
+#flash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999; /* Поверх всего */
+    display: none; /* По умолчанию скрыт */
+    opacity: 0;
+    transition: opacity 0.5s ease; /* Плавное появление */
+}
+
+#flash-screen.active {
+    display: block;
+    opacity: 1;
+}
+
 #anim-box { width: 80%; max-width: 300px; }
 #res-card { text-align: center; animation: zoomIn 0.5s; }
 #res-card img { width: 200px; border-radius: 20px; box-shadow: 0 0 20px white; margin: 10px 0;}
