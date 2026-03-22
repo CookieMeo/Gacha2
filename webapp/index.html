@@ -2,109 +2,115 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Казино</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="app">
-        
-        <!-- ДОМ (ИНВЕНТАРЬ) -->
-        <div id="home-view" class="view active">
-            <h1>Мои Питомцы</h1>
-            <div id="inventory-list" class="pet-grid">
-                <!-- Сюда попадут питомцы -->
-            </div>
+
+    <!-- НАВИГАЦИЯ ВНИЗУ -->
+    <nav>
+        <button id="home-btn" class="active-nav">🏠 Дом</button>
+        <button id="gacha-btn">🎉 Гача</button>
+        <button id="game-btn">🍓 Игра</button>
+        <button id="profile-btn">👤 Профиль</button>
+    </nav>
+
+    <!-- СТРАНИЦА ДОМ -->
+    <div id="home" class="page active">
+        <h2>Моя Коллекция</h2>
+        <div id="inventory-grid">
+            <!-- Сюда будут добавляться питомцы -->
         </div>
-
-        <!-- ГАЧА -->
-        <div id="gacha-view" class="view">
-            <h1>Гача</h1>
-            <div class="spins-box">Круток: <span class="val-spins">0</span></div>
-            
-            <div class="banners">
-                <button id="banner-1" class="banner-btn active" onclick="setBanner(1)">Феникс</button>
-                <button id="banner-2" class="banner-btn" onclick="setBanner(2)">Цербер</button>
-            </div>
-
-            <div class="spin-buttons">
-                <button onclick="spin(1)" class="btn-spin">Крутить x1</button>
-                <button onclick="spin(10)" class="btn-spin">Крутить x10</button>
-            </div>
-
-            <div class="shop">
-                <p>Купить за клубнику (<span class="val-strawberry">0</span>):</p>
-                <div class="buy-grid">
-                    <button onclick="buySpins(1)">+1 (100)</button>
-                    <button onclick="buySpins(5)">+5 (500)</button>
-                    <button onclick="buySpins(10)">+10 (1000)</button>
-                    <button onclick="buySpins(50)">+50 (5000)</button>
-                    <button onclick="buySpins(100)">+100 (10000)</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ИГРА (КЛИКЕР) -->
-        <div id="clicker-view" class="view">
-            <h1 class="pink-text">Уровень <span class="val-level">1</span></h1>
-            <div class="clicker-container">
-                <img src="assets/strawberry.png" class="strawberry-main" onclick="clickStrawberry()">
-            </div>
-            <div class="strawberry-text">Клубника: <span class="val-strawberry">0</span></div>
-            <button id="upgrade-btn" class="btn-upgrade" onclick="upgradeClicker()">Улучшить (10)</button>
-        </div>
-
-        <!-- ПРОФИЛЬ -->
-        <div id="profile-view" class="view">
-            <div class="profile-card">
-                <img id="profile-avatar" src="assets/default_avatar.png" class="avatar">
-                <h2 id="profile-username">Загрузка...</h2>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card"><span>Винрейт Leg</span><b id="stat-winrate">0%</b></div>
-                <div class="stat-card"><span>Средняя Leg</span><b id="stat-avg-red">0</b></div>
-                <div class="stat-card"><span>Потрачено 🍓</span><b id="stat-spent-straw">0</b></div>
-                <div class="stat-card"><span>Потрачено 🌀</span><b id="stat-spent-spins">0</b></div>
-            </div>
-
-            <button class="btn-collection" onclick="openCollection()">Открыть коллекцию</button>
-
-            <div class="promo-box">
-                <input type="text" id="promo-input" placeholder="Промокод...">
-                <button onclick="claimPromo()">ОК</button>
-            </div>
-        </div>
-
-        <!-- НАВИГАЦИЯ (БЕЗ КАРТИНОК) -->
-        <nav class="bottom-nav">
-            <button class="nav-btn active" onclick="showView('home-view')">Дом</button>
-            <button class="nav-btn" onclick="showView('gacha-view')">Гача</button>
-            <button class="nav-btn" onclick="showView('clicker-view')">Игра</button>
-            <button class="nav-btn" onclick="showView('profile-view')">Профиль</button>
-        </nav>
     </div>
 
-    <!-- ОВЕРЛЕИ -->
-    <div id="gacha-overlay" class="overlay hidden">
+    <!-- СТРАНИЦА ИГРЫ (КЛИКЕР) -->
+    <div id="game" class="page">
+        <h2 id="lvl-display">Уровень 1</h2>
+        <img src="assets/strawberry.png" id="collect-btn" width="180">
+        <div class="stats">🍓 <span id="straw-count">0</span></div>
+        <button id="upgrade-btn">Улучшить (10 🍓)</button>
+    </div>
+
+    <!-- СТРАНИЦА ГАЧИ -->
+    <div id="gacha" class="page">
+        <div class="pity-info">
+            Красный: <span id="p-red">50</span> | 
+            Оранжевый: <span id="p-orange">30</span> | 
+            Желтый: <span id="p-yellow">15</span> | 
+            Зеленый: <span id="p-green">10</span> | 
+            Голубой: <span id="p-lightblue">5</span> | 
+            Синий: <span id="p-blue">3</span>
+        </div>
+        
+        <div class="user-spins">
+            🌀 Круток: <span id="spin-count">0</span>
+        </div>
+        
+        <div id="gacha-res">Жми крутить!</div>
+        
+        <div class="gacha-controls">
+            <button id="spin-1">x1</button>
+            <button id="spin-10">x10</button>
+        </div>
+        
+        <div class="shop">
+            <h3>Клубника: <span id="gacha-straw">0</span></h3>
+            <button>+1</button> <button>+5</button> <button>+10</button> <button>+50</button> <button>+100</button>
+        </div>
+    </div>
+
+    <!-- СТРАНИЦА ПРОФИЛЯ -->
+    <div id="profile" class="page">
+        <div class="profile-header">
+            <img id="profile-avatar" src="" alt="Аватар">
+            <h2 id="profile-username">Имя пользователя</h2>
+        </div>
+        
+        <div class="profile-content">
+            <h3>Статистика</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <p>Персонажей получено</p>
+                    <p id="stat-pets-obtained">0</p>
+                </div>
+                <div class="stat-item">
+                    <p>Кликов на клубнику</p>
+                    <p id="stat-clicks">0</p>
+                </div>
+                <div class="stat-item">
+                    <p>Винрейт гачи (%)</p>
+                    <p id="stat-winrate-gacha">0.0%</p>
+                </div>
+                 <div class="stat-item">
+                    <p>Винрейт боя (%)</p>
+                    <p id="stat-winrate-battle">0.0%</p>
+                </div>
+                 <div class="stat-item">
+                    <p>Клубники потрачено</p>
+                    <p id="stat-spent">0</p>
+                </div>
+                 <div class="stat-item">
+                    <p>Круток потрачено</p>
+                    <p id="stat-spins-bought">0</p>
+                </div>
+            </div>
+            <button id="collection-btn">Коллекция</button>
+        </div>
+    </div>
+
+    <!-- ОВЕРЛЕЙ ГАЧИ (АНИМАЦИЯ + РЕЗУЛЬТАТ) -->
+    <div id="gacha-overlay" class="hidden">
         <div id="anim-box"><img id="gacha-gif" src=""></div>
         <div id="res-card" class="hidden">
             <img id="res-img" src="">
             <h2 id="res-name"></h2>
             <p id="res-rarity"></p>
-            <button onclick="document.getElementById('gacha-overlay').classList.add('hidden')">Забрать</button>
-        </div>
-    </div>
-
-    <div id="collection-overlay" class="overlay hidden">
-        <div class="modal">
-            <h2>Коллекция</h2>
-            <div id="collection-grid" class="pet-grid"></div>
-            <button onclick="document.getElementById('collection-overlay').classList.add('hidden')">Закрыть</button>
+            <button onclick="closeGacha()">Забрать</button>
         </div>
     </div>
 
     <script src="script.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
