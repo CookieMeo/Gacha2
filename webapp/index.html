@@ -13,7 +13,7 @@
     <nav>
         <button id="home-btn" class="active-nav">🏠 Дом</button>
         <button id="gacha-btn">🎉 Гача</button>
-        <button id="game-btn">🍓 Игра</button>
+        <button id="game-btn">🍓 Фарм</button>
         <button id="profile-btn">👤 Профиль</button>
     </nav>
 
@@ -102,7 +102,8 @@
 
     <!-- ОВЕРЛЕЙ ГАЧИ (АНИМАЦИЯ + РЕЗУЛЬТАТ) -->
     <div id="gacha-overlay" class="hidden">
-        <div id="anim-box"><img id="gacha-gif" src=""></div>
+        <!-- Этот блок будет перекрывать экран нужным цветом -->
+        <div id="flash-screen"></div>
         <div id="res-card" class="hidden">
             <img id="res-img" src="">
             <h2 id="res-name"></h2>
